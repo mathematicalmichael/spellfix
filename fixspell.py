@@ -57,6 +57,3 @@ if __name__ == '__main__':
     print(fix.known.word_frequency.unique_words)
     print(fix.unknown.word_frequency.unique_words)
     main(fix)
-
-# we do not want this to be one of the things importable from the package
-del SpellChecker
