@@ -13,7 +13,9 @@ pip install .
 should do it, and `pip install -e .` will install a development version.
 
 ## docs
+
 `python fixer.py --help`
+
 `python make_names.py --help`
 
 ## usage
