@@ -17,7 +17,7 @@ def delete_char(name:str):
 
     """
     # remove random character from string
-    ind = random.randint(0,len(name))
+    ind = random.randint(1,len(name)-1)
     name = name[:ind-1] + name[ind:]
     return name
 

@@ -8,7 +8,7 @@ Command-line utility for interactively correcting typos that
 occur in a word list.
 """
 setup(
-    name='fixspell',
+    name='spellfix',
     version='0.1',
     description=about,
     author='Michael Pilosov',
