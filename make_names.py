@@ -5,7 +5,7 @@ faker = Factory.create()
 # probability of typo
 prob = 0.3
 
-def delete_char(name:str):
+def delete_char(name):
     """
     Remove a character at random from the string    
     Parameters
@@ -21,7 +21,7 @@ def delete_char(name:str):
     name = name[:ind-1] + name[ind:]
     return name
 
-def swap_chars(name:str):
+def swap_chars(name):
     """
     Swap two characters in a string at random.
     """
@@ -32,7 +32,7 @@ def swap_chars(name:str):
     name = name[:ind] + name[ind+1] + name[ind] + name[ind+2:]
     return name
 
-def shuffle_letters(name:str):
+def shuffle_letters(name):
     """
     Performs one, two,  or three character swaps.
     """
@@ -41,7 +41,7 @@ def shuffle_letters(name:str):
         name = swap_chars(name)
     return name
 
-def chop_letter(name:str):
+def chop_letter(name):
     """
     Removes the last character of the name half the time.
     The other half, remove the first character.
@@ -51,7 +51,7 @@ def chop_letter(name:str):
     else:
         return name[1:]
 
-def perturb(name:str):
+def perturb(name):
     """
     Choose one of several ways to perturb a string, 
     and perform the change to the given `name`.
@@ -85,7 +85,7 @@ if __name__ == '__main__':
     # create original list (typo free)
     num_changes = 0
     num_lines = 0
-    print(f"Making typo list from {num_names} unique names with up to {max_num_repeats} repetitions.")
+    print("Making typo list from %d unique names with up to %d repetitions."%(num_names, max_num_repeats))
     with open('wordlist.txt', 'w') as f:
         for i in range(num_names):
             # pick out random lines to perturb (make typo)
@@ -99,4 +99,4 @@ if __name__ == '__main__':
                 else:
                     new_name = name
                 f.write(new_name + '\n')
-    print(f"Num changes: {num_changes}\nNum lines: {num_lines}")
+    print("Num changes: %d\nNum lines: %d"%(num_changes, num_lines))

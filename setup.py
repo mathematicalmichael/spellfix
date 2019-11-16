@@ -14,5 +14,6 @@ setup(
     author='Michael Pilosov',
     company='Slalom Build',
     author_email='consistentbayes@gmail.com',
-    install_requires=requirements
+    install_requires=requirements,
+    py_modules=['make_names']
 )
