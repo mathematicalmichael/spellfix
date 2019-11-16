@@ -14,7 +14,7 @@ should do it, and `pip install -e .` will install a development version.
 
 ## docs
 
-`python fixer.py --help`
+`python spellfix.py --help`
 
 `python make_names.py --help`
 
@@ -25,7 +25,7 @@ Generate a file of names (if you don't have your own), and call it `wordlist.txt
 `python make_names.py`
 
 Then, you can run 
-`python fixer.py`
+`python spellfix.py`
 
 If you want to specify your own file:
-`python fixer.py -f FILE`
+`python spellfix.py -f FILE`
