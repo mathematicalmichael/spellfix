@@ -69,3 +69,6 @@ def test_perturb():
         # shuffle
         assert len(mkn.perturb(name, 2)) == target_len
 
+        random_choice = mkn.perturb(name)
+        assert len(random_choice) == target_len or \
+               len(random_choice) == target_len - 1
