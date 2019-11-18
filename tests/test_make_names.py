@@ -1,4 +1,5 @@
 import make_names as mkn
+import os
 import pytest
 from faker import Factory
 faker = Factory.create()
@@ -72,3 +73,6 @@ def test_perturb():
         random_choice = mkn.perturb(name)
         assert len(random_choice) == target_len or \
                len(random_choice) == target_len - 1
+
+def test_script():
+    os.system("python3 make_names.py")
