@@ -51,12 +51,19 @@ def chop_letter(name):
     else:
         return name[1:]
 
-def perturb(name):
+def perturb(name, r=None):
     """
     Choose one of several ways to perturb a string, 
     and perform the change to the given `name`.
     """
-    r = random.randint(0,3)
+    if r is None:
+        r = random.randint(0,3)
+    elif type(r) is float or type(r) is int:
+        if r<0 or r>=4:
+            raise ValueError("Please specify 0 <= r < 4")
+    else:
+        raise TypeError("r must be a number")
+    
     if r == 0:
         return delete_char(name)
     elif r == 1:
