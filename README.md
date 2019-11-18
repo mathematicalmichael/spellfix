@@ -1,5 +1,13 @@
 # spellfix
 
+Master:
+[![codecov](https://codecov.io/gh/mathematicalmichael/spellfix/branch/master/graph/badge.svg)](https://codecov.io/gh/mathematicalmichael/spellfix)
+[![Build Status](https://travis-ci.com/mathematicalmichael/spellfix.svg?branch=master)](https://travis-ci.com/mathematicalmichael/spellfix)
+
+Develop:
+[![codecov](https://codecov.io/gh/mathematicalmichael/spellfix/branch/develop/graph/badge.svg)](https://codecov.io/gh/mathematicalmichael/spellfix)
+[![Build Status](https://travis-ci.com/mathematicalmichael/spellfix.svg?branch=develop)](https://travis-ci.com/mathematicalmichael/spellfix)
+
 A typo correction command-line program written in Python.
 
 ## installation
