@@ -13,6 +13,17 @@ def wipe_dictionary(spell):
     spell.word_frequency.remove_words(list(d.keys()))
     return spell
 
+import fileinput
+def pre_process_file(filename):
+    fin = open(filename)
+    fout = open("words.txt", "wt")
+    for line in fin:
+        newline = line.lower().replace(' ', '').replace('\'','').replace(',','').replace('-','')
+        fout.write(newline)
+    fin.close()
+    fout.close()
+
+
 class Fixer(object):
     def __init__(self, filename):
         self.known_file = 'known_words.txt'
@@ -21,7 +32,8 @@ class Fixer(object):
         unknown = SpellChecker()
         self.known = wipe_dictionary(known)
         self.unknown = wipe_dictionary(unknown)
-        self.unknown.word_frequency.load_text_file(filename)
+        pre_process_file(filename)
+        self.unknown.word_frequency.load_text_file('words.txt')
 
     def get_counts(self):
         """
@@ -36,6 +48,87 @@ class Fixer(object):
         unknown = self.unknown.word_frequency.unique_words
         return (known, unknown)
 
+    def show_known(self):
+        """
+        """
+        return self.known.word_frequency.dictionary
+
+    def show_unknown(self):
+        """
+        """
+        return self.unknown.word_frequency.dictionary
+
+    def correct(self):
+        """
+        """
+        uwfq = self.unknown.word_frequency
+        kwfq = self.known.word_frequency
+        unknown_words = list(uwfq.dictionary.keys())
+        word = unknown_words[0]
+        self.unknown.word_frequency.pop(word)
+        print("\t===> %s"%word)
+        known_candidates = list(self.known.candidates(word))
+        unknown_candidates = list(self.unknown.candidates(word))
+        # remove word from known candidate list if theere.
+        if word in known_candidates:
+            known_candidates.remove(word)
+
+        if known_candidates is not None:
+            candidates = known_candidates + \
+                     unknown_candidates
+        else: # no known candidates = empty list.
+            candidates = unknown_candidates
+            known_candidates = []
+
+        i = 1
+        print("0: No mistake. Add word.")
+        print("Known:")
+        for w in known_candidates:
+            print("%d: %s"%(i, w))
+            i += 1
+        print("Unnown:")
+        for w in unknown_candidates:
+            print("%d: %s"%(i, w))
+            i += 1
+        choice = None
+        while choice not in range(len(candidates)+1):
+            try:
+                choice = int(input("\nMake your selection: "))
+                correction = candidates[choice-1]
+                if choice not in range(len(candidates)+1):
+                    print("Please make a valid selection.")
+            except ValueError:
+                print("Please make a valid selection.")
+ 
+        if choice == 0:
+            print("Add %s to KNOWN?"%word)
+            ans = get_yn()
+            if ans:
+                kwfq.add(word)
+                print("Added word.")
+        else:
+            print("Correct %s ===> %s ?"%(word, correction))
+            ans = get_yn()
+            if ans:
+                kwfq.add(correction)
+                print("Added correction.")
+                # to-do: get rid of other instances.
+
+    def save(self):
+        """
+        """
+        pass
+
+def get_yn():
+    loop = 1
+    while loop:
+        choice = input("Confirm (Y/N):")
+        if choice in ['y', 'Y', '1']:
+            return True
+        elif choice in ['n', 'N', '0']:
+            return False
+        else:
+            print("Invalid choice. Please try again.")
 
 menu = """
 C. Correct a word. 
@@ -57,9 +150,30 @@ def main(fix):
         print("Done: %d, Remaining: %d"%(counts))
         print(menu)
         choice = input("Make choice from menu: ").lower()
+        # quit
         if choice in ['0', 'Q', 'q']:
             live = 0
             print("Exiting...")
+        # correct   
+        elif choice in ['C', 'c']:
+            fix.correct()
+        # save
+        elif choice in ['S', 's']:
+            fix.save()
+        # edit
+        elif choice in ['E', 'e']:
+            continue
+        # see knowns
+        elif choice in ['K', 'k']:
+            k = fix.show_known()
+            print(k)
+        # see unknowns
+        elif choice in ['U', 'u']:
+            u = fix.show_unknown()
+            print(u)
+        else:
+            print("Choice not understood. Please try again.")
+            continue
     return None
 
 if __name__ == '__main__':
