@@ -80,40 +80,64 @@ class Fixer(object):
         candidates = []
         if known_candidates is not None:
             candidates += known_candidates
+        else:
+            known_candidates = []
         if unknown_candidates is not None:
             candidates += unknown_candidates
+        else:
+            unknown_candidates = []
 
-        i = 1
-        print("0: No mistake. Add word.")
-        print("Known:")
-        for w in known_candidates:
-            print("%d: %s"%(i, w))
-            i += 1
-        print("Unnown:")
-        for w in unknown_candidates:
-            print("%d: %s"%(i, w))
-            i += 1
-        choice = None
-        while choice not in range(len(candidates)+1):
-            try:
-                choice = int(input("\nMake your selection: "))
-                correction = candidates[choice-1]
-                if choice not in range(len(candidates)+1):
+        if len(candidates) <= 1:
+            # no candidates. must be new word.
+            # choice is made on your behalf
+            if len(candidates) == 0:
+                choice = 0
+            else: # only one choice
+                choice = 1
+            skip = True # skip confirmation
+        else:
+            skip = False # do not skip confirmation
+            i = 1
+            print("0: No mistake. Add word.")
+            print("Known:")
+            for w in known_candidates:
+                print("%d: %s"%(i, w))
+                i += 1
+            print("Unnown:")
+            for w in unknown_candidates:
+                print("%d: %s"%(i, w))
+                i += 1
+            choice = None
+            while choice not in range(len(candidates)+1):
+                try:
+                    choice = int(input("\nMake your selection: "))
+                    if choice not in range(len(candidates)+1):
+                        print("Please make a valid selection.")
+                except ValueError:
                     print("Please make a valid selection.")
-            except ValueError:
-                print("Please make a valid selection.")
- 
+    
         if choice == 0:
-            print("Add %s to KNOWN?"%word)
-            ans = get_yn()
+            if skip:
+                ans = True
+                print("%s appears to be new. Adding."%word)
+            else:
+                print("Add %s to KNOWN?"%word)
+                ans = get_yn()
+
             if ans:
                 kwfq.add(word)
                 uwfq.remove(word)
                 self.corrections[word] = []
                 print("Added word.")
         else:
-            print("Correct %s ===> %s ?"%(word, correction))
-            ans = get_yn()
+            correction = candidates[choice-1]
+            if skip:
+                ans = True
+                print("%s appears to be the only candidate correction. Correcting to %s."%(word, correction))
+            else:
+                print("Correct %s ===> %s ?"%(word, correction))
+                ans = get_yn()
+
             if ans:
                 kwfq.add(correction)
                 uwfq.remove(word)
@@ -131,7 +155,7 @@ def get_yn():
     loop = 1
     while loop:
         choice = input("Confirm (Y/N):")
-        if choice in ['y', 'Y', '1']:
+        if choice in ['y', 'Y', '1', '']:
             return True
         elif choice in ['n', 'N', '0']:
             return False
@@ -157,13 +181,13 @@ def main(fix):
         print("=====================")
         print("Done: %d, Remaining: %d"%(counts))
         print(menu)
-        choice = input("Make choice from menu: ").lower()
+        choice = input("Make choice from menu: ")
         # quit
         if choice in ['0', 'Q', 'q']:
             live = 0
             print("Exiting...")
         # correct   
-        elif choice in ['C', 'c']:
+        elif choice in ['C', 'c', '']:  # default choice
             fix.correct()
         # save
         elif choice in ['S', 's']:
