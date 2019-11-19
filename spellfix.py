@@ -66,20 +66,22 @@ class Fixer(object):
         kwfq = self.known.word_frequency
         unknown_words = list(uwfq.dictionary.keys())
         word = unknown_words[0]
-        self.unknown.word_frequency.pop(word)
+        #self.unknown.word_frequency.pop(word)
+        #uwfq.pop(word)
         print("\t===> %s"%word)
         known_candidates = list(self.known.candidates(word))
         unknown_candidates = list(self.unknown.candidates(word))
         # remove word from known candidate list if theere.
         if word in known_candidates:
             known_candidates.remove(word)
-
+        if word in unknown_candidates:
+            unknown_candidates.remove(word)
+        
+        candidates = []
         if known_candidates is not None:
-            candidates = known_candidates + \
-                     unknown_candidates
-        else: # no known candidates = empty list.
-            candidates = unknown_candidates
-            known_candidates = []
+            candidates += known_candidates
+        if unknown_candidates is not None:
+            candidates += unknown_candidates
 
         i = 1
         print("0: No mistake. Add word.")
@@ -116,7 +118,7 @@ class Fixer(object):
                 kwfq.add(correction)
                 uwfq.remove(word)
                 print("Added correction.")
-                self.corections[correction].append(word)
+                self.corrections[correction].append(word)
                 # to-do: get rid of other instances.
         print(uwfq.unique_words, kwfq.unique_words)
 
@@ -134,7 +136,7 @@ def get_yn():
         elif choice in ['n', 'N', '0']:
             return False
         else:
-            print("Invalid choice. Please try again.")
+            print("Invalid choice. Please try again!\n")
 
 menu = """
 C. Correct a word. 
