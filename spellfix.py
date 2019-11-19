@@ -23,6 +23,20 @@ class Fixer(object):
         self.unknown = wipe_dictionary(unknown)
         self.unknown.word_frequency.load_text_file(filename)
 
+    def get_counts(self):
+        """
+        Return counts for number of known and unknown words.
+        
+        Returns
+        ---
+        (known_count, unknown_count): tuple of integers
+
+        """
+        known = self.known.word_frequency.unique_words
+        unknown = self.unknown.word_frequency.unique_words
+        return (known, unknown)
+
+
 menu = """
 C. Correct a word. 
 Q. Quit/Exit.
@@ -32,30 +46,13 @@ K: See known list.
 U: See unknown list.
 """
 
-def get_counts(fix):
-    """
-    Return counts for number of known and unknown words.
-    
-    Parameters
-    ---
-    
-    Fixer fix: instance of Fixer class.
-
-    Returns
-    ---
-    (known_count, unknown_count): tuple of integers
-    """
-    known = fix.known.word_frequency.unique_words
-    unknown = fix.unknown.word_frequency.unique_words
-    return (known, unknown)
-
 def main(fix):
     """
     Interactive Program for editing typos
     """
     live = 1
     while live:
-        counts = get_counts(fix)
+        counts = fix.get_counts()
         print("=====================")
         print("Done: %d, Remaining: %d"%(counts))
         print(menu)
