@@ -28,6 +28,7 @@ class Fixer(object):
     def __init__(self, filename):
         self.known_file = 'known_words.txt'
         self.unknown_file = 'unknown_words.txt'
+        self.corrections = {}
         known = SpellChecker()        
         unknown = SpellChecker()
         self.known = wipe_dictionary(known)
@@ -105,14 +106,19 @@ class Fixer(object):
             ans = get_yn()
             if ans:
                 kwfq.add(word)
+                uwfq.remove(word)
+                self.corrections[word] = []
                 print("Added word.")
         else:
             print("Correct %s ===> %s ?"%(word, correction))
             ans = get_yn()
             if ans:
                 kwfq.add(correction)
+                uwfq.remove(word)
                 print("Added correction.")
+                self.corections[correction].append(word)
                 # to-do: get rid of other instances.
+        print(uwfq.unique_words, kwfq.unique_words)
 
     def save(self):
         """
@@ -174,6 +180,7 @@ def main(fix):
         else:
             print("Choice not understood. Please try again.")
             continue
+ 
     return None
 
 if __name__ == '__main__':
