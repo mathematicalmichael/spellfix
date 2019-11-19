@@ -13,7 +13,6 @@ def wipe_dictionary(spell):
     spell.word_frequency.remove_words(list(d.keys()))
     return spell
 
-import fileinput
 def pre_process_file(filename):
     fin = open(filename)
     fout = open("words.txt", "wt")
@@ -29,10 +28,10 @@ class Fixer(object):
         self.known_file = 'known_words.txt'
         self.unknown_file = 'unknown_words.txt'
         self.corrections = {}
-        known = SpellChecker()        
-        unknown = SpellChecker()
-        self.known = wipe_dictionary(known)
-        self.unknown = wipe_dictionary(unknown)
+        self.known = SpellChecker(distance=6, language=None, case_sensitive=False)        
+        self.unknown = SpellChecker(distance=6, language=None, case_sensitive=False)        
+        #self.known = wipe_dictionary(known)
+        #self.unknown = wipe_dictionary(unknown)
         pre_process_file(filename)
         self.unknown.word_frequency.load_text_file('words.txt')
 
@@ -69,14 +68,18 @@ class Fixer(object):
         #self.unknown.word_frequency.pop(word)
         #uwfq.pop(word)
         print("\t===> %s"%word)
+        # TODO: COMPLETELY CHANGE THE CANDIDATE GENERATION
         known_candidates = list(self.known.candidates(word))
         unknown_candidates = list(self.unknown.candidates(word))
-        # remove word from known candidate list if theere.
+
+        print(known_candidates, unknown_candidates)
+        # remove word from known candidate list if there.
         if word in known_candidates:
             known_candidates.remove(word)
         if word in unknown_candidates:
             unknown_candidates.remove(word)
         
+        print(known_candidates, unknown_candidates)
         candidates = []
         if known_candidates is not None:
             candidates += known_candidates
@@ -133,7 +136,7 @@ class Fixer(object):
             correction = candidates[choice-1]
             if skip:
                 ans = True
-                print("%s appears to be the only candidate correction. Correcting to %s."%(word, correction))
+                print("%s appears to be the only candidate correction. Correcting %s."%(correction, word))
             else:
                 print("Correct %s ===> %s ?"%(word, correction))
                 ans = get_yn()
@@ -144,12 +147,16 @@ class Fixer(object):
                 print("Added correction.")
                 self.corrections[correction].append(word)
                 # to-do: get rid of other instances.
-        print(uwfq.unique_words, kwfq.unique_words)
 
     def save(self):
         """
         """
         pass
+
+    def show_corrections(self):
+        """
+        """
+        return self.corrections
 
 def get_yn():
     loop = 1
@@ -169,6 +176,7 @@ S. Save files to disk.
 E. Edit existing entries.
 K: See known list.
 U: See unknown list.
+L: See corrections list.
 """
 
 def main(fix):
@@ -203,6 +211,9 @@ def main(fix):
         elif choice in ['U', 'u']:
             u = fix.show_unknown()
             print(u)
+        elif choice in ['L', 'l']:
+            l = fix.show_corrections()
+            print(l)
         else:
             print("Choice not understood. Please try again.")
             continue
