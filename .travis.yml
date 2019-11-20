@@ -1,23 +1,23 @@
 language: python
 cache: apt
+sudo: false
 
 # ======= Linux ========
-os: linux
-  python:
-    - 2.7
-    - 3.5
-    - 3.6
-    - 3.7
-    - 3.7-dev
-    - 3.8
-    - 3.8-dev
-  
+python:
+  - 2.7
+  - 3.5
+  - 3.6
+  - 3.7
+  - 3.7-dev
+  - 3.8
+  - 3.8-dev
+
 addons:
   apt:
     packages:
       - gcc
 
-jobs:
+matrix:
   include:
     - name: "Python 2.7 on Bionic Linux"
       python: 2.7
