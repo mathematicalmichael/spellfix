@@ -145,7 +145,7 @@ before_install:
   - pip install pytest-cov
 
 install:
-  - pip install ".[test]"
+  - pip install .
 
 script: pytest
 
