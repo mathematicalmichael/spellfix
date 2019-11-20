@@ -1,8 +1,8 @@
 pyspellchecker
+cython
 faker
+numpy
+pandas
 scikit-learn
 sparse_dot_topn
 scipy
-numpy
-pandas
-cython
