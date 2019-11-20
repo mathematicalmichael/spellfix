@@ -11,14 +11,6 @@ def ngrams(string, n=3):
     ngrams = zip(*[string[i:] for i in range(n)])
     return [''.join(ngram) for ngram in ngrams]
 
-names = pd.read_table('wordlist.txt', header=None)
-names.columns = ['Company Name']
-
-
-company_names = names['Company Name'].unique()
-vectorizer = TfidfVectorizer(min_df=1, analyzer=ngrams)
-tf_idf_matrix = vectorizer.fit_transform(company_names)
-
 
 def awesome_cossim_top(A, B, ntop, lower_bound=0):
     # force A and B as a CSR matrix.
@@ -50,9 +42,6 @@ def awesome_cossim_top(A, B, ntop, lower_bound=0):
     return csr_matrix((data,indices,indptr),shape=(M,N))
 
 
-matches = awesome_cossim_top(tf_idf_matrix, tf_idf_matrix.transpose(), 10, 0.8)
-
-
 def get_matches_df(sparse_matrix, name_vector, top=100):
     non_zeros = sparse_matrix.nonzero()
     
@@ -76,27 +65,58 @@ def get_matches_df(sparse_matrix, name_vector, top=100):
     return pd.DataFrame({'left_side': left_side,
                           'right_side': right_side,
                            'similarity': similairity})
+
+
+def names_from_file(filename='wordlist.txt', header=None):
+    names = pd.read_table(filename, header=header)
+    names.columns = ['Company Name']
+    company_names = names['Company Name'].unique()
+    return company_names
+
+def make_matches(company_names, ntop=10, thresh=0.8):
+    """
+    Use scikit-learn's `TfidVectorizer` to embed into word-space.
+    """
+    vectorizer = TfidfVectorizer(min_df=1, analyzer=ngrams)
+    tf_idf_matrix = vectorizer.fit_transform(company_names) 
+    matches = awesome_cossim_top(tf_idf_matrix, tf_idf_matrix.transpose(), ntop=ntop, lower_bound=thresh)
+    return matches 
+
+
+def groupings_to_csv(grouped_df, foldername='matches'):
+    """
+    Dump results of df.groupby() to a folder.
+    Each group gets its own CSV file without indices or headers.
+    """
+    if not os.path.exists(foldername):
+        os.mkdir(foldername)
+    else:
+        os.system('rm {}/*'.format(foldername))
+
+    for k, gr in grouped_df:
+        print("Processing {}".format(k))
+        gr['right_side'].to_csv('matches/{}.csv'.format(k.replace(' ', '_')), index=False, header=False )
+
+    group_counts = grouped_df.count()
+    group_counts.to_csv('{}-groups.csv'.format(foldername))
+    return group_counts
  
-matches_df = get_matches_df(matches, company_names, top=None)
-matches_df = matches_df[matches_df['similarity'] < 0.99999] # Remove all exact matches
+##########
 
-samps_sorted = matches_df.sort_values(['similarity'], ascending=False)
+def main():
+    company_names = names_from_file()
+    matches = make_matches(company_names)
+    matches_df = get_matches_df(matches, company_names, top=None)
+    matches_df = matches_df[matches_df['similarity'] < 0.99999] # Remove all exact matches
+    
+    samps_sorted = matches_df.sort_values(['similarity'], ascending=False)
+    lgrouped = samps_sorted[['left_side', 'right_side']].groupby('left_side', sort=True)
 
-print(samps_sorted.shape)
-print(samps_sorted)
+    group_counts = groupings_to_csv(lgrouped, 'matches') 
 
-lgrouped = samps_sorted[['left_side', 'right_side']].groupby('left_side', sort=True)
+    return group_counts
 
-if not os.path.exists('matches'):
-    os.mkdir('matches')
-else:
-    os.system('rm matches/*')
+if __name__ == '__main__':
+    group_counts = main()
+    print(group_counts)
 
-for k, gr in lgrouped:
-    print("Processing {}".format(k))
-    gr['right_side'].to_csv('matches/{}.csv'.format(k.replace(' ', '_')), index=False, header=False )
-
-group_counts = lgrouped.count()
-group_counts.to_csv('matches-groups.csv')
-
-print(group_counts.sort_values('right_side'))
