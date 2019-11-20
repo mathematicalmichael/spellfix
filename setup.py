@@ -15,6 +15,6 @@ setup(
     company='Slalom Build',
     author_email='consistentbayes@gmail.com',
     install_requires=requirements,
-    tests_require=['pytest', 'codecov', 'pytest-cov'],
+    setup_requires=['pytest', 'codecov', 'pytest-cov'],
     py_modules=['make_names']
 )
