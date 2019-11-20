@@ -1,3 +1,7 @@
 pyspellchecker
 faker
 scikit-learn
+sparse_dot_topn
+scipy
+numpy
+pandas
