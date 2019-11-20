@@ -1,4 +1,7 @@
 language: python
+cache: apt
+sudo: false
+
 # ======= Linux ========
 python:
   - 2.7
@@ -8,6 +11,11 @@ python:
   - 3.7-dev
   - 3.8
   - 3.8-dev
+
+addons:
+  apt:
+    packages:
+      - gcc
 
 matrix:
   include:
@@ -46,11 +54,8 @@ matrix:
       language: shell       # 'language: python' is an error on Travis CI macOS
       before_install:
               - python --version
-      # - pip install -U pip
-      # - python -m pip install --upgrade pip
-              - pip install pytest --user
-              - pip install codecov --user
-              - pip install pytest-cov --user
+            # - pip install -U pip
+            # - python -m pip install --upgrade pip
       install: pip install ".[test]" --user
       script: python -m pytest
       after_success: python  -m codecov
@@ -62,9 +67,6 @@ matrix:
       before_install:
               - python3 --version
               - pip3 install -U pip
-              - pip3 install -U pytest
-              - pip3 install codecov
-              - pip3 install pytest-cov
       script: python3 -m pytest
       after_success: python 3 -m codecov
 
@@ -75,9 +77,6 @@ matrix:
       before_install:
               - python3 --version
               - pip3 install -U pip
-              - pip3 install -U pytest
-              - pip3 install codecov
-              - pip3 install pytest-cov
       script: python3 -m pytest
       after_success: python 3 -m codecov
 
@@ -88,9 +87,6 @@ matrix:
       before_install:
               - python3 --version
               - pip3 install -U pip
-              - pip3 install -U pytest
-              - pip3 install codecov
-              - pip3 install pytest-cov
       script: python3 -m pytest
       after_success: python 3 -m codecov
 
@@ -102,9 +98,6 @@ matrix:
               - choco install python2
               - python --version
               - python -m pip install --upgrade pip
-              - pip install --upgrade pytest
-              - pip install codecov
-              - pip install pytest-cov
       env: PATH=/c/Python27:/c/Python27/Scripts:$PATH
 
     - name: "Python 3.5.4 on Windows"
@@ -114,9 +107,6 @@ matrix:
               - choco install python --version 3.5.4
               - python --version
               - python -m pip install --upgrade pip
-              - pip3 install --upgrade pytest
-              - pip3 install codecov
-              - pip3 install pytest-cov
       env: PATH=/c/Python35:/c/Python35/Scripts:$PATH
 
     - name: "Python 3.6.8 on Windows"
@@ -126,9 +116,6 @@ matrix:
               - choco install python --version 3.6.8
               - python --version
               - python -m pip install --upgrade pip
-              - pip3 install --upgrade pytest
-              - pip3 install codecov
-              - pip3 install pytest-cov
       env: PATH=/c/Python36:/c/Python36/Scripts:$PATH
 
     - name: "Python 3.7.4 on Windows"
@@ -138,9 +125,6 @@ matrix:
               - choco install python --version 3.7.4
               - python --version
               - python -m pip install --upgrade pip
-              - pip3 install --upgrade pytest
-              - pip3 install codecov
-              - pip3 install pytest-cov
       env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
 
     - name: "Python 3.8 on Windows"
@@ -150,9 +134,6 @@ matrix:
               - choco install python --version 3.8
               - python --version
               - python -m pip install --upgrade pip
-              - pip3 install --upgrade pytest
-              - pip3 install codecov
-              - pip3 install pytest-cov
       env: PATH=/c/Python38:/c/Python38/Scripts:$PATH
 
 
@@ -162,8 +143,11 @@ before_install:
   - pip install -U pytest
   - pip install codecov
   - pip install pytest-cov
+
 install:
   - pip install ".[test]"
+
 script: pytest
+
 after_success:
   - codecov # submit coverage
