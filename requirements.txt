@@ -1,8 +1,2 @@
 pyspellchecker
-cython
 faker
-numpy>= 1.11.0
-pandas
-scikit-learn
-sparse_dot_topn
-scipy>= 0.17.0

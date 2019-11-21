@@ -143,7 +143,7 @@ before_install:
   - python --version
   - pip install -U pip
   # if numpy is missing, errors come up with installation.
-  - pip install numpy
+  - pip install numpy cython
   # the following shouldn't be necessary with setup.py
   #- pip install -U pytest
   #- pip install codecov

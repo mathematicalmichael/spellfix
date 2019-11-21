@@ -3,6 +3,9 @@ from setuptools import setup, find_packages
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
+with open('recommended_requirements.txt' as f:
+    recommend = f.read().splitlines()
+ 
 about = """
 Command-line utility for interactively correcting typos that
 occur in a word list.
@@ -16,6 +19,9 @@ setup(
     author_email='consistentbayes@gmail.com',
     install_requires=requirements,
     setup_requires=['pytest', 'codecov', 'pytest-cov'],
+    extras_require={
+        'recommend': recommend,
+    }
     py_modules=['make_names'],
     packages=find_packages()
 )
