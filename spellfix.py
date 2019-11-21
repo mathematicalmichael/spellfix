@@ -179,7 +179,7 @@ U: See unknown list.
 L: See corrections list.
 """
 
-def main(fix):
+def mainmenu(fix):
     """
     Interactive Program for editing typos
     """
@@ -220,7 +220,7 @@ def main(fix):
  
     return None
 
-if __name__ == '__main__':
+def main():
     import argparse
     import os
     desc = "Typo Corrector!"
@@ -232,6 +232,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
     filename = args.file
     if not os.path.exists(filename):
-        raise ValueError(f"File {filename} does not exist.")
+        raise ValueError("File %s does not exist."%filename)
     fix = Fixer(filename)
-    main(fix)
+    mainmenu(fix)
+
+if __name__ == '__main__':
+    main()

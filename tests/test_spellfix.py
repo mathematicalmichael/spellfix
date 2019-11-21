@@ -1,11 +1,13 @@
 import pytest
 import os
+import make_names as mkn
+import spellfix
 
 def test_script(monkeypatch):
-    os.system("python make_names.py")
+    mkn.main() # make text file
     # test quit
-    monkeypatch.setattr('builtins.input', lambda: 'Q')
-    os.system("python spellfix.py")
+    monkeypatch.setattr('builtins.input', lambda x: 'Q')
+    spellfix.main()
     # make sure the right files got created/saved
     assert os.path.exists('words.txt')
     
