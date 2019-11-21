@@ -20,13 +20,13 @@ addons:
 
 jobs:
   include:
-    - name: "Python 2.7 on Xenial"
-      python: 2.7
-      dist: xenial
+#    - name: "Python 2.7 on Xenial"
+#      python: 2.7
+#      dist: xenial
 
-    - name: "Python 2.7 on Bionic"
-      python: 2.7
-      dist: bionic
+#    - name: "Python 2.7 on Bionic"
+#      python: 2.7
+#      dist: bionic
 
     - name: "Python 3.5 on Bionic"
       python: 3.5
@@ -55,18 +55,18 @@ jobs:
       dist: bionic
 
 # ======= OSX ========
-    - name: "Python 2.7.14 on macOS 10.13" # not running recommendation tests.
-      os: osx
-      osx_image: xcode9.3  # Python 2.7.14_2 running on macOS 10.13
-      language: shell       # 'language: python' is an error on Travis CI macOS
-      before_install:
-        - python --version
-        - python -m pip install -U pip --user
-      install:  # this needs a special flag.
-        - pip install -U .[testing] --user
-      script: python -m pytest
-      after_success: python  -m codecov
-
+#    - name: "Python 2.7.14 on macOS 10.13" # not running recommendation tests.
+#      os: osx
+#      osx_image: xcode9.3  # Python 2.7.14_2 running on macOS 10.13
+#      language: shell       # 'language: python' is an error on Travis CI macOS
+#      before_install:
+#        - python --version
+#        - python -m pip install -U pip --user
+#      install:  # this needs a special flag.
+#        - pip install -U .[testing] --user
+#      script: python -m pytest
+#      after_success: python  -m codecov
+#
     - name: "Python 3.6.5 on macOS 10.13"
       os: osx
       osx_image: xcode9.4  # Python 3.6.5 running on macOS 10.13
@@ -107,15 +107,15 @@ jobs:
       after_success: python 3 -m codecov
 
 ##  ====== WINDOWS =========
-    - name: "Python 2.7 on Windows"
-      os: windows           # Windows 10.0.17134 N/A Build 17134
-      language: shell # 'language: python' errors Travis CI Windows
-      before_install:
-        - choco install python2
-        - python --version
-        - python -m pip install -U pip
-      env: PATH=/c/Python27:/c/Python27/Scripts:$PATH
-
+#    - name: "Python 2.7 on Windows"
+#      os: windows           # Windows 10.0.17134 N/A Build 17134
+#      language: shell # 'language: python' errors Travis CI Windows
+#      before_install:
+#        - choco install python2
+#        - python --version
+#        - python -m pip install -U pip
+#      env: PATH=/c/Python27:/c/Python27/Scripts:$PATH
+#
     - name: "Python 3.5.4 on Windows"
       os: windows           # Windows 10.0.17134 N/A Build 17134
       language: shell       # 'language: python' is an error on Travis CI Windows

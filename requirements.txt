@@ -1,3 +1,2 @@
 pyspellchecker
 faker
-future
