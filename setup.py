@@ -21,7 +21,7 @@ setup(
     setup_requires=['pytest', 'codecov', 'pytest-cov'],
     extras_require={
         'recommend': recommend,
-    }
+    },
     py_modules=['make_names'],
     packages=find_packages()
 )
