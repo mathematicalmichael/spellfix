@@ -1,0 +1,6 @@
+pandas
+scipy>= 0.17.0
+numpy>= 1.11.0
+scikit-learn
+cython
+sparse_dot_topn
