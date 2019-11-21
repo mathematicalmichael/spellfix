@@ -3,13 +3,6 @@ import traceback
 
 extra_params = {}
 setup_requires = ['pytest', 'codecov', 'pytest-cov']
-try:
-    import pip
-    pip.main(['install'] + setup_requires)
-    setup_requires = []
-except Exception:
-    # Going to use easy_install for
-    traceback.print_exc()
 
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
@@ -29,9 +22,9 @@ setup(
     company='Slalom Build',
     author_email='consistentbayes@gmail.com',
     install_requires=requirements,
-    setup_requires=setup_requires,
     extras_require={
         'recommend': recommend,
+        'testing': setup_requires,
     },
     py_modules=['make_names'],
     packages=find_packages()

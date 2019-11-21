@@ -143,15 +143,11 @@ before_install:
   - python --version
   - pip install -U pip
   # if numpy is missing, errors come up with installation.
-  - pip install numpy cython
-  # the following shouldn't be necessary with setup.py
-  #- pip install -U pytest
-  #- pip install codecov
-  #- pip install pytest-cov
+  #- pip install numpy cython
+  - pip install -U .[testing]
 
 install:
-  # for test suite to be included, we use this syntax instead of pip install
-  - python setup.py install
+  - pip install .
 
 script: pytest
 
