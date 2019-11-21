@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
-with open('recommended_requirements.txt' as f:
+with open('recommended_requirements.txt') as f:
     recommend = f.read().splitlines()
  
 about = """
