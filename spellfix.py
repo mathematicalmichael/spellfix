@@ -1,5 +1,9 @@
 #!/usr/env/python
+import re
 from spellchecker import SpellChecker
+
+def format_str(word):
+        return re.sub(r'[,-./]|\sExt',r'', word).replace(' ', '_').lower()
 
 def wipe_dictionary(spell):
     """
@@ -17,7 +21,8 @@ def pre_process_file(filename):
     fin = open(filename)
     fout = open("words.txt", "wt")
     for line in fin:
-        newline = line.lower().replace(' ', '').replace('\'','').replace(',','').replace('-','')
+        #newline = line.lower().replace(' ', '').replace('\'','').replace(',','').replace('-','')
+        newline = format_str(line)
         fout.write(newline)
     fin.close()
     fout.close()
@@ -28,8 +33,8 @@ class Fixer(object):
         self.known_file = 'known_words.txt'
         self.unknown_file = 'unknown_words.txt'
         self.corrections = {}
-        self.known = SpellChecker(distance=6, language=None, case_sensitive=False)        
-        self.unknown = SpellChecker(distance=6, language=None, case_sensitive=False)        
+        self.known = SpellChecker(distance=2, language=None, case_sensitive=True)
+        self.unknown = SpellChecker(distance=2, language=None, case_sensitive=True)        
         #self.known = wipe_dictionary(known)
         #self.unknown = wipe_dictionary(unknown)
         pre_process_file(filename)
@@ -71,6 +76,9 @@ class Fixer(object):
         # TODO: COMPLETELY CHANGE THE CANDIDATE GENERATION
         known_candidates = list(self.known.candidates(word))
         unknown_candidates = list(self.unknown.candidates(word))
+        fname = 'matches/' + format_str(word) + '.csv'
+        with open(fname, 'r') as f:
+            unknown_candidates += f.read().splitlines()
 
         print(known_candidates, unknown_candidates)
         # remove word from known candidate list if there.
@@ -151,6 +159,7 @@ class Fixer(object):
     def save(self):
         """
         """
+        
         pass
 
     def show_corrections(self):

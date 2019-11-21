@@ -5,9 +5,10 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 from scipy.sparse import csr_matrix
 import sparse_dot_topn.sparse_dot_topn as ct
+from spellfix import format_str
 
 def ngrams(string, n=3):
-    string = re.sub(r'[,-./]|\sExt',r'', string)
+    string = format_str(string)
     ngrams = zip(*[string[i:] for i in range(n)])
     return [''.join(ngram) for ngram in ngrams]
 
@@ -95,16 +96,18 @@ def groupings_to_csv(grouped_df, foldername='matches'):
 
     for k, gr in grouped_df:
         print("Processing {}".format(k))
-        gr['right_side'].to_csv('matches/{}.csv'.format(k.replace(' ', '_')), index=False, header=False )
+        fname = format_str(k)
+        gr['right_side'].apply(lambda x: format_str(x)).to_csv('matches/{}.csv'.format(fname), index=False, header=False )
 
     group_counts = grouped_df.count()
     group_counts.to_csv('{}-groups.csv'.format(foldername))
     return group_counts
- 
+
 ##########
 
 def main():
-    company_names = names_from_file()
+    # TODO: take argparse
+    company_names = names_from_file('wordlist.txt')
     matches = make_matches(company_names)
     matches_df = get_matches_df(matches, company_names, top=None)
     matches_df = matches_df[matches_df['similarity'] < 0.99999] # Remove all exact matches
