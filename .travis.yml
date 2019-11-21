@@ -48,6 +48,8 @@ jobs:
     - name: "Python 3.8-dev on Bionic Linux"
       python: 3.8-dev
       dist: bionic
+      after_success:
+        - codecov # submit coverage
 
 ## ======= OSX ========
 #    - name: "Python 2.7.14 on macOS 10.13"
@@ -151,5 +153,3 @@ install:
 
 script: pytest
 
-after_success:
-  - codecov # submit coverage
