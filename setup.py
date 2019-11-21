@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
@@ -16,5 +16,6 @@ setup(
     author_email='consistentbayes@gmail.com',
     install_requires=requirements,
     setup_requires=['pytest', 'codecov', 'pytest-cov'],
-    py_modules=['make_names']
+    py_modules=['make_names'],
+    packages=find_packages()
 )
