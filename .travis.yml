@@ -58,7 +58,7 @@ jobs:
       language: shell       # 'language: python' is an error on Travis CI macOS
       before_install:
         - python --version
-        - python -m pip install -U pip
+        - python -m pip install -U pip --user
       install:  # this needs a special flag.
         - pip install -U .[testing] --user
       script: python -m pytest
