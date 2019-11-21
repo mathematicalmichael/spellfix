@@ -6,7 +6,6 @@ notifications:
 # ======= Linux ========
 os: linux
 python:
-  - 2.7
   - 3.5
   - 3.6
   - 3.7
@@ -21,35 +20,39 @@ addons:
 
 jobs:
   include:
-    - name: "Python 2.7 on Bionic Linux"
+    - name: "Python 2.7 on Xenial"
+      python: 2.7
+      dist: xenial
+
+    - name: "Python 2.7 on Bionic"
       python: 2.7
       dist: bionic
 
-    - name: "Python 3.5 on Bionic Linux"
+    - name: "Python 3.5 on Bionic"
       python: 3.5
       dist: bionic
 
-    - name: "Python 3.6  on Bionic Linux"
+    - name: "Python 3.6  on Bionic"
       python: 3.6
       dist: bionic
 
-    - name: "Python 3.7  on Bionic Linux"
+    - name: "Python 3.7  on Bionic"
       python: 3.7
       dist: bionic
 
-    - name: "Python 3.8 on Bionic Linux"
+    - name: "Python 3.8 on Bionic"
       python: 3.8
       dist: bionic
+      after_success:
+        - codecov # submit coverage only here.
 
-    - name: "Python 3.7-dev on Bionic Linux"
+    - name: "Python 3.7-dev on Bionic"
       python: 3.7-dev
       dist: bionic
 
-    - name: "Python 3.8-dev on Bionic Linux"
+    - name: "Python 3.8-dev on Bionic"
       python: 3.8-dev
       dist: bionic
-      after_success:
-        - codecov # submit coverage
 
 # ======= OSX ========
     - name: "Python 2.7.14 on macOS 10.13" # not running recommendation tests.
@@ -99,45 +102,48 @@ jobs:
       os: windows           # Windows 10.0.17134 N/A Build 17134
       language: shell # 'language: python' errors Travis CI Windows
       before_install:
-              - choco install python2
-              - python --version
-              - python -m pip install -U pip
+        - choco install python2
+        - python --version
+        - python -m pip install -U pip
+      install:
+        - pip install -U .[testing]
+        - pip install .
       env: PATH=/c/Python27:/c/Python27/Scripts:$PATH
 
     - name: "Python 3.5.4 on Windows"
       os: windows           # Windows 10.0.17134 N/A Build 17134
       language: shell       # 'language: python' is an error on Travis CI Windows
       before_install:
-              - choco install python --version 3.5.4
-              - python --version
-              - python -m pip install -U pip
+        - choco install python --version 3.5.4
+        - python --version
+        - python -m pip install -U pip
       env: PATH=/c/Python35:/c/Python35/Scripts:$PATH
 
     - name: "Python 3.6.8 on Windows"
       os: windows           # Windows 10.0.17134 N/A Build 17134
       language: shell       # 'language: python' is an error on Travis CI Windows
       before_install:
-              - choco install python --version 3.6.8
-              - python --version
-              - python -m pip install -U pip
+          - choco install python --version 3.6.8
+          - python --version
+          - python -m pip install -U pip
       env: PATH=/c/Python36:/c/Python36/Scripts:$PATH
 
     - name: "Python 3.7.4 on Windows"
       os: windows           # Windows 10.0.17134 N/A Build 17134
       language: shell       # 'language: python' is an error on Travis CI Windows
       before_install:
-              - choco install python --version 3.7.4
-              - python --version
-              - python -m pip install -U pip
+          - choco install python --version 3.7.4
+          - python --version
+          - python -m pip install -U pip
       env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
 
     - name: "Python 3.8 on Windows"
       os: windows           # Windows 10.0.17134 N/A Build 17134
       language: shell       # 'language: python' is an error on Travis CI Windows
       before_install:
-              - choco install python --version 3.8
-              - python --version
-              - python -m pip install -U pip
+          - choco install python --version 3.8
+          - python --version
+          - python -m pip install -U pip
       env: PATH=/c/Python38:/c/Python38/Scripts:$PATH
 
 
@@ -145,7 +151,7 @@ before_install:
   - python --version
   - pip install -U pip
   # if numpy is missing, errors come up with installation.
-  #- pip install numpy cython
+  - pip install numpy cython
 
 install:
   - pip install -U .[testing]
