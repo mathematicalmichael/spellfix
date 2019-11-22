@@ -77,13 +77,17 @@ class Fixer(object):
         known_candidates = list(self.known.candidates(word))
         unknown_candidates = list(self.unknown.candidates(word))
         fname = 'matches/' + format_str(word) + '.csv'
-        with open(fname, 'r') as f:
-            loaded_options = f.read().splitlines()
-        # clean up duplicates from loaded list.
-        for w in known_candidates:
-            if w in loaded_options:
-                loaded_options.remove(w) 
-        unknown_candidates += loaded_options
+        try:
+            with open(fname, 'r') as f:
+                loaded_options = f.read().splitlines()
+            # clean up duplicates from loaded list.
+            for w in known_candidates:
+               if w in loaded_options:
+                    loaded_options.remove(w) 
+            unknown_candidates += loaded_options
+        except FileNotFoundError: # sometimes the TFidF doesn't match words
+            loaded_options = []
+
         #print(known_candidates, unknown_candidates)
         # remove word from known candidate list if there.
         if word in kwfq.dictionary:
