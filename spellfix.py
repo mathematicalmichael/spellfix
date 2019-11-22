@@ -86,7 +86,12 @@ class Fixer(object):
         uwfq = self.unknown.word_frequency
         kwfq = self.known.word_frequency
         unknown_words = list(uwfq.dictionary.keys())
-        word = unknown_words[0]
+        if len(unknown_words) == 0:
+            quit = True
+            print("YOU ARE DONE!")
+            return quit # FINISHED!
+        else:
+            word = unknown_words[0]
         #self.unknown.word_frequency.pop(word)
         # uwfq.remove(word)
         print("\t===> %s"%word)
