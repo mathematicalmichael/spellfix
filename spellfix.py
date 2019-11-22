@@ -150,13 +150,10 @@ class Fixer(object):
                     print("%d: %s"%(i, w))
                     i += 1
                 choice = None
-                
-                while choice not in choices + ['Q', 'U', 'K', 'L', 'S']:
-                    try:
-                        choice = input("\nMake your selection: ")
-                        if choice not in choices:
-                            print("Please make a valid selection.")
-                    except ValueError:
+                all_choices = choices + ['Q', 'U', 'K', 'L', 'S'] 
+                while choice not in all_choices:
+                    choice = input("\nMake your selection: ")
+                    if choice not in all_choices:
                         print("Please make a valid selection.")
         
             if choice == '0':
