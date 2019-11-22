@@ -32,7 +32,13 @@ def pre_process_file(filename):
 
 class Fixer(object):
     def __init__(self, filename):
-        self.prefix = filename.replace('.txt', '')
+        """
+        
+        Parameters
+        ----------
+          filename: CSV or TXT file, one entry per line.
+        """
+        self.prefix = filename.replace('.txt', '').replace('.csv', '')
         self.known_file =  self.prefix + '-known_words.json'
         self.unknown_file = self.prefix + '-unknown_words.json'
         self.corrections = {}
@@ -92,7 +98,7 @@ class Fixer(object):
             with open(fname, 'r') as f:
                 loaded_options = f.read().splitlines()
             # clean up duplicates from loaded list.
-            for w in known_candidates:
+            for w in known_candidates + unknown_candidates:
                if w in loaded_options:
                     loaded_options.remove(w) 
             unknown_candidates += loaded_options
@@ -111,8 +117,8 @@ class Fixer(object):
                     unknown_candidates.remove(w) 
             if word in known_candidates: # spellchecker returns word if not seen instead of empty list.
                 known_candidates.remove(word)
-            if word in unknown_candidates:
-                unknown_candidates.remove(word)
+            #if word in unknown_candidates:
+            #    unknown_candidates.remove(word)
             #print(known_candidates, unknown_candidates)
             candidates = []
             if known_candidates is not None:
@@ -216,7 +222,7 @@ class Fixer(object):
 def get_yn():
     loop = 1
     while loop:
-        choice = input("Confirm (Y/N):")
+        choice = input("Confirm ([Y]/N):")
         if choice in ['y', 'Y', '1', '']:
             return True
         elif choice in ['n', 'N', '0']:
