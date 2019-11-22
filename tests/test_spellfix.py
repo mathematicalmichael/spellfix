@@ -7,8 +7,7 @@ def test_script(monkeypatch):
     mkn.main() # make text file
     # test options
     for opt in ['Q', 'S', 'K', 'U', 'L']:
-        print(opt)
-        monkeypatch.setattr('builtins.input', lambda x: opt)
+        monkeypatch.setattr('builtins.input', lambda x: 'Q')
         spellfix.main()
         # make sure the right files got created/saved
         assert os.path.exists('words.txt')
