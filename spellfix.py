@@ -32,8 +32,9 @@ def pre_process_file(filename):
 
 class Fixer(object):
     def __init__(self, filename):
-        self.known_file = 'known_words.json'
-        self.unknown_file = 'unknown_words.json'
+        self.prefix = filename.replace('.txt', '')
+        self.known_file =  self.prefix + '-known_words.json'
+        self.unknown_file = self.prefix + '-unknown_words.json'
         self.corrections = {}
         self.known = SpellChecker(distance=2, language=None, case_sensitive=False)
         if os.path.exists(self.known_file):
@@ -202,7 +203,7 @@ class Fixer(object):
             json.dump(self.unknown.word_frequency.dictionary, f)
         with open(self.known_file, 'w') as f:
             json.dump(self.known.word_frequency.dictionary, f)
-        with open('corrections.json', 'w') as f:
+        with open(self.prefix + '-corrections.json', 'w') as f:
             json.dump(self.corrections, f)
 
         print("SAVED!") 
@@ -269,14 +270,21 @@ def mainmenu(fix):
     Interactive Program for editing typos
     """
     quit = False
+    i = 0
     while not quit:
         counts = fix.get_counts()
         print("=====================")
         print("Done: %d, Remaining: %d"%(counts))
         print(menu)
         quit = fix.correct()
-
-        #choice = input("Make choice from menu: ")
+        i += 1
+        if i%100 == 0:
+            print("100 iterations automated. Would you like to proceed?")
+            choice = input("Make choice from menu: ")
+            if choice in ['C', 'c', '']:
+                continue
+            else:
+                quit = select_option(fix,choice) 
     
     return None
 
