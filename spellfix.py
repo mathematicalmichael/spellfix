@@ -253,7 +253,6 @@ def get_yn():
             print("Invalid choice. Please try again!\n")
 
 menu = """
-C. Correct a word. 
 Q. Quit/Exit.
 S. Save files to disk.
 E. Edit existing entries.
@@ -306,8 +305,8 @@ def mainmenu(fix):
         print(menu)
         quit = fix.correct()
         i += 1
-        if i%100 == 0:
-            print("100 iterations automated. Would you like to proceed?")
+        if i%20 == 0:
+            print("20 iterations automated. Would you like to proceed?")
             choice = input("Make choice from menu: ")
             if choice in ['C', 'c', '']:
                 continue

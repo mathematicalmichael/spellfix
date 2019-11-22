@@ -3,7 +3,7 @@ import random
 
 faker = Factory.create()
 # probability of typo
-prob = 0.3
+prob = 0.2
 
 def delete_char(name):
     """
@@ -78,11 +78,11 @@ def main():
     desc = "Typo Corrector!"
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument('-n', '--number',
-                        default=100,
+                        default=50,
                         type=int,
                         help='Number of unique names.')  
     parser.add_argument('-r', '--repeats',
-                        default=25,
+                        default=15,
                         type=int,
                         help='Max number of times a single name occurs.')  
     args = parser.parse_args()
