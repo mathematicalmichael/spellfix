@@ -108,7 +108,6 @@ class Fixer(object):
         #self.unknown.word_frequency.remove(word)
         # uwfq.remove(word)
         print("\t===> %s"%word)
-        # TODO: COMPLETELY CHANGE THE CANDIDATE GENERATION
         known_candidates = list(self.known.candidates(word))
         unknown_candidates = list(self.unknown.candidates(word))
         fname = self.prefix + '-matches/' + format_str(word) + '.csv'
@@ -135,8 +134,8 @@ class Fixer(object):
                     unknown_candidates.remove(w) 
             if word in known_candidates: # spellchecker returns word if not seen instead of empty list.
                 known_candidates.remove(word)
-            if word in unknown_candidates and len(known_candidates) > 0:
-                unknown_candidates.remove(word)
+            #if word in unknown_candidates and len(known_candidates) > 0:
+            #    unknown_candidates.remove(word)
             #print(known_candidates, unknown_candidates)
             candidates = []
             if known_candidates is not None:
@@ -163,14 +162,16 @@ class Fixer(object):
             else:
                 skip = False # do not skip confirmation
                 i = 1
-                print("0: No mistake. Add word.")
+                #print("0: No mistake. Add word.")
                 print("Known:")
                 for w in known_candidates:
-                    print("%d: %s"%(i, w))
+                    p = 100*self.known.word_probability(w)
+                    print("%d: %s - %f%%"%(i, w, p))
                     i += 1
                 print("Unknown:")
                 for w in unknown_candidates:
-                    print("%d: %s"%(i, w))
+                    p = 100*self.unknown.word_probability(w)
+                    print("%d: %s - %f%%"%(i, w, p))
                     i += 1
                 choice = None
                 all_choices = choices + ['Q', 'U', 'K', 'L', 'S'] 
