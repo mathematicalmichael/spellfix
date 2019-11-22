@@ -42,6 +42,7 @@ class Fixer(object):
         self.known_file =  self.prefix + '-known_words.json'
         self.unknown_file = self.prefix + '-unknown_words.json'
         self.corrections = {}
+        self.threshold = 10
         self.known = SpellChecker(distance=2, language=None, case_sensitive=False)
         if os.path.exists(self.known_file):
             print("Reading known")
@@ -51,6 +52,18 @@ class Fixer(object):
         if os.path.exists(self.unknown_file):
             print("Reading unknown")
             self.unknown.word_frequency.load_dictionary(self.unknown_file)
+            if not os.path.exists(self.known_file):
+                print("Making known by trimming unknown")
+                self.known.word_frequency.load_dictionary(self.unknown_file)
+                self.known.word_frequency.remove_by_threshold(self.threshold)
+                keys = [x for x in self.known.word_frequency._dictionary.keys()]
+                for key in keys:
+                    wordfreq = self.unknown.word_frequency._dictionary[key]
+                    if  wordfreq > self.threshold:
+                        print("Removing %s from unknown because above threshold of %d"%(key, self.threshold))
+                        self.unknown.word_frequency._dictionary.pop(key)
+                self.unknown.word_frequency._update_dictionary()
+
         else:
             print("Loading file.")
             pre_process_file(filename) # creates a words.txt file for us
@@ -92,7 +105,7 @@ class Fixer(object):
             return quit # FINISHED!
         else:
             word = unknown_words[0]
-        #self.unknown.word_frequency.pop(word)
+        #self.unknown.word_frequency.remove(word)
         # uwfq.remove(word)
         print("\t===> %s"%word)
         # TODO: COMPLETELY CHANGE THE CANDIDATE GENERATION
@@ -122,8 +135,8 @@ class Fixer(object):
                     unknown_candidates.remove(w) 
             if word in known_candidates: # spellchecker returns word if not seen instead of empty list.
                 known_candidates.remove(word)
-            #if word in unknown_candidates:
-            #    unknown_candidates.remove(word)
+            if word in unknown_candidates and len(known_candidates) > 0:
+                unknown_candidates.remove(word)
             #print(known_candidates, unknown_candidates)
             candidates = []
             if known_candidates is not None:
@@ -192,10 +205,10 @@ class Fixer(object):
                 if ans:
                     kwfq.add(correction)
                     if word in uwfq.dictionary:
-                        print("Removing word from unknowns.")
+                        print("Removing %s from unknowns."%word)
                         uwfq.remove(word)
                     if correction in uwfq.dictionary:
-                        print("Removing correction from unknowns.")
+                        print("Removing %s from unknowns."%correction)
                         uwfq.remove(correction)
                     print("Added correction.")
                     # if first time adding alias, initialize list.
