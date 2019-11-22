@@ -1,6 +1,8 @@
 #!/usr/env/python
+import os
 import re
 from spellchecker import SpellChecker
+import json
 
 def format_str(word):
         return re.sub(r'[,-./]|\sExt',r'', word).replace(' ', '_').lower()
@@ -30,15 +32,24 @@ def pre_process_file(filename):
 
 class Fixer(object):
     def __init__(self, filename):
-        self.known_file = 'known_words.txt'
-        self.unknown_file = 'unknown_words.txt'
+        self.known_file = 'known_words.json'
+        self.unknown_file = 'unknown_words.json'
         self.corrections = {}
         self.known = SpellChecker(distance=2, language=None, case_sensitive=False)
+        if os.path.exists(self.known_file):
+            print("Reading known")
+            self.known.word_frequency.load_dictionary(self.known_file)
+
         self.unknown = SpellChecker(distance=2, language=None, case_sensitive=False)        
+        if os.path.exists(self.unknown_file):
+            print("Reading unknown")
+            self.unknown.word_frequency.load_dictionary(self.unknown_file)
+        else:
+            print("Loading file.")
+            pre_process_file(filename)
+            self.unknown.word_frequency.load_text_file('words.txt')
         #self.known = wipe_dictionary(known)
         #self.unknown = wipe_dictionary(unknown)
-        pre_process_file(filename)
-        self.unknown.word_frequency.load_text_file('words.txt')
 
     def get_counts(self):
         """
@@ -192,8 +203,14 @@ class Fixer(object):
     def save(self):
         """
         """
-        print("SAVE!") 
-        pass
+        with open(self.unknown_file, 'w') as f:
+            json.dump(self.unknown.word_frequency.dictionary, f)
+        with open(self.known_file, 'w') as f:
+            json.dump(self.known.word_frequency.dictionary, f)
+        with open('corrections.json', 'w') as f:
+            json.dump(self.corrections, f)
+
+        print("SAVED!") 
 
     def show_corrections(self):
         """
