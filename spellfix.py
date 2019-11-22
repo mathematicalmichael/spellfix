@@ -93,7 +93,7 @@ class Fixer(object):
         # TODO: COMPLETELY CHANGE THE CANDIDATE GENERATION
         known_candidates = list(self.known.candidates(word))
         unknown_candidates = list(self.unknown.candidates(word))
-        fname = 'matches/' + format_str(word) + '.csv'
+        fname = self.prefix + '-matches/' + format_str(word) + '.csv'
         try:
             with open(fname, 'r') as f:
                 loaded_options = f.read().splitlines()
@@ -196,7 +196,10 @@ class Fixer(object):
                     # if first time adding alias, initialize list.
                     if correction not in self.corrections:
                         self.corrections[correction] = []
-                    self.corrections[correction].append(word)
+                    if correction != word: # two possible ways to "add word", can "correct to itself"
+                        self.corrections[correction].append(word)
+                    else: # graceful "error" handling without crashing.
+                        print("Correcting word to itself. Adding as new instead.")
                     # to-do: get rid of other instances.
             else:
                 quit = select_option(self, choice)

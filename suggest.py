@@ -97,7 +97,7 @@ def groupings_to_csv(grouped_df, foldername='matches'):
     for k, gr in grouped_df:
         print("Processing {}".format(k))
         fname = format_str(k)
-        gr['right_side'].apply(lambda x: format_str(x)).to_csv('matches/{}.csv'.format(fname), index=False, header=False )
+        gr['right_side'].apply(lambda x: format_str(x)).to_csv('{}/{}.csv'.format(foldername, fname), index=False, header=False )
 
     group_counts = grouped_df.count()
     group_counts.to_csv('{}-groups.csv'.format(foldername))
@@ -113,8 +113,8 @@ def main(fname):
     
     samps_sorted = matches_df.sort_values(['similarity'], ascending=False)
     lgrouped = samps_sorted[['left_side', 'right_side']].groupby('left_side', sort=True)
-
-    group_counts = groupings_to_csv(lgrouped, 'matches') 
+    prefix = fname.replace('.csv', '').replace('.txt', '')
+    group_counts = groupings_to_csv(lgrouped, prefix + '-matches') 
 
     return group_counts
 
