@@ -66,6 +66,7 @@ class Fixer(object):
     def correct(self):
         """
         """
+        quit = False
         uwfq = self.unknown.word_frequency
         kwfq = self.known.word_frequency
         unknown_words = list(uwfq.dictionary.keys())
@@ -113,15 +114,16 @@ class Fixer(object):
             else:
                 unknown_candidates = []
     
+            choices = [str(s) for s in range(len(candidates)+1)]
             if len(candidates) == 0:
                 # no candidates. must be new word.
                 # choice is made on your behalf
                 if len(candidates) == 0:
-                    choice = 0
+                    choice = '0'
                 skip = True # skip confirmation
             elif (len(unknown_candidates) == 0) and (len(known_candidates) == 1):
                 # one known and no unknowns.
-                choice = 1
+                choice = '1'
                 print("Making correction to only known option.")
                 skip = True
             else:
@@ -137,15 +139,16 @@ class Fixer(object):
                     print("%d: %s"%(i, w))
                     i += 1
                 choice = None
-                while choice not in range(len(candidates)+1):
+                
+                while choice not in choices + ['Q', 'U', 'K', 'L', 'S']:
                     try:
-                        choice = int(input("\nMake your selection: "))
-                        if choice not in range(len(candidates)+1):
+                        choice = input("\nMake your selection: ")
+                        if choice not in choices:
                             print("Please make a valid selection.")
                     except ValueError:
                         print("Please make a valid selection.")
         
-            if choice == 0:
+            if choice == '0':
                 if skip:
                     ans = True
                     print("%s appears to be new. Adding."%word)
@@ -158,7 +161,8 @@ class Fixer(object):
                     uwfq.remove(word)
                     self.corrections[word] = []
                     print("Added word.")
-            else:
+            elif choice in choices:
+                choice = int(choice) # numerical choice.
                 correction = candidates[choice-1]
                 if skip:
                     ans = True
@@ -181,11 +185,14 @@ class Fixer(object):
                         self.corrections[correction] = []
                     self.corrections[correction].append(word)
                     # to-do: get rid of other instances.
-   
+            else:
+                quit = select_option(self, choice)
+            return quit
+
     def save(self):
         """
         """
-        
+        print("SAVE!") 
         pass
 
     def show_corrections(self):
@@ -214,45 +221,51 @@ U: See unknown list.
 L: See corrections list.
 """
 
+def select_option(fix, choice):
+    quit = False
+    # quit
+    if choice in ['0', 'Q', 'q']:
+        quit = True
+        print("Exiting...")
+    # correct   
+    elif choice in ['C', 'c', '']:  # default choice
+        fix.correct()
+    # save
+    elif choice in ['S', 's']:
+        fix.save()
+    # edit
+    elif choice in ['E', 'e']:
+        pass
+    # see knowns
+    elif choice in ['K', 'k']:
+        k = fix.show_known()
+        print(k)
+    # see unknowns
+    elif choice in ['U', 'u']:
+        u = fix.show_unknown()
+        print(u)
+    elif choice in ['L', 'l']:
+        l = fix.show_corrections()
+        print(l)
+    else:
+        print("Choice not understood. Please try again.")
+        pass
+    return quit
+ 
 def mainmenu(fix):
     """
     Interactive Program for editing typos
     """
-    live = 1
-    while live:
+    quit = False
+    while not quit:
         counts = fix.get_counts()
         print("=====================")
         print("Done: %d, Remaining: %d"%(counts))
         print(menu)
-        choice = input("Make choice from menu: ")
-        # quit
-        if choice in ['0', 'Q', 'q']:
-            live = 0
-            print("Exiting...")
-        # correct   
-        elif choice in ['C', 'c', '']:  # default choice
-            fix.correct()
-        # save
-        elif choice in ['S', 's']:
-            fix.save()
-        # edit
-        elif choice in ['E', 'e']:
-            continue
-        # see knowns
-        elif choice in ['K', 'k']:
-            k = fix.show_known()
-            print(k)
-        # see unknowns
-        elif choice in ['U', 'u']:
-            u = fix.show_unknown()
-            print(u)
-        elif choice in ['L', 'l']:
-            l = fix.show_corrections()
-            print(l)
-        else:
-            print("Choice not understood. Please try again.")
-            continue
- 
+        quit = fix.correct()
+
+        #choice = input("Make choice from menu: ")
+    
     return None
 
 def main():
