@@ -21,7 +21,7 @@ def wipe_dictionary(spell):
 
 def pre_process_file(filename):
     fin = open(filename)
-    fout = open("words.txt", "wt")
+    fout = open("words.txt", "wt") # temporary file for processed words
     for line in fin:
         #newline = line.lower().replace(' ', '').replace('\'','').replace(',','').replace('-','')
         newline = format_str(line)
@@ -46,10 +46,8 @@ class Fixer(object):
             self.unknown.word_frequency.load_dictionary(self.unknown_file)
         else:
             print("Loading file.")
-            pre_process_file(filename)
+            pre_process_file(filename) # creates a words.txt file for us
             self.unknown.word_frequency.load_text_file('words.txt')
-        #self.known = wipe_dictionary(known)
-        #self.unknown = wipe_dictionary(unknown)
 
     def get_counts(self):
         """

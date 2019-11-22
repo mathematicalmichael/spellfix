@@ -105,9 +105,8 @@ def groupings_to_csv(grouped_df, foldername='matches'):
 
 ##########
 
-def main():
-    # TODO: take argparse
-    company_names = names_from_file('wordlist.txt')
+def main(fname):
+    company_names = names_from_file(fname)
     matches = make_matches(company_names)
     matches_df = get_matches_df(matches, company_names, top=None)
     matches_df = matches_df[matches_df['similarity'] < 0.99999] # Remove all exact matches
@@ -120,6 +119,18 @@ def main():
     return group_counts
 
 if __name__ == '__main__':
-    group_counts = main()
+    import argparse
+    import os
+    desc = "Generate suggestions for possible corrections."
+    parser = argparse.ArgumentParser(description=desc)
+    parser.add_argument('-f', '--file',
+                        default='wordlist.txt',
+                        type=str,
+                        help='File name of words to correct.')
+    args = parser.parse_args()
+    filename = args.file
+    if not os.path.exists(filename):
+        raise ValueError("File %s does not exist."%filename)
+    group_counts = main(filename)
     print(group_counts)
 
