@@ -74,7 +74,7 @@ def names_from_file(filename='wordlist.txt', header=None):
     company_names = names['Company Name'].unique()
     return company_names
 
-def make_matches(company_names, ntop=10, thresh=0.8):
+def make_matches(company_names, ntop=10, thresh=0.75):
     """
     Use scikit-learn's `TfidVectorizer` to embed into word-space.
     """

@@ -33,8 +33,8 @@ class Fixer(object):
         self.known_file = 'known_words.txt'
         self.unknown_file = 'unknown_words.txt'
         self.corrections = {}
-        self.known = SpellChecker(distance=2, language=None, case_sensitive=True)
-        self.unknown = SpellChecker(distance=2, language=None, case_sensitive=True)        
+        self.known = SpellChecker(distance=2, language=None, case_sensitive=False)
+        self.unknown = SpellChecker(distance=2, language=None, case_sensitive=False)        
         #self.known = wipe_dictionary(known)
         #self.unknown = wipe_dictionary(unknown)
         pre_process_file(filename)
@@ -71,91 +71,113 @@ class Fixer(object):
         unknown_words = list(uwfq.dictionary.keys())
         word = unknown_words[0]
         #self.unknown.word_frequency.pop(word)
-        #uwfq.pop(word)
+        # uwfq.remove(word)
         print("\t===> %s"%word)
         # TODO: COMPLETELY CHANGE THE CANDIDATE GENERATION
         known_candidates = list(self.known.candidates(word))
         unknown_candidates = list(self.unknown.candidates(word))
         fname = 'matches/' + format_str(word) + '.csv'
         with open(fname, 'r') as f:
-            unknown_candidates += f.read().splitlines()
-
-        print(known_candidates, unknown_candidates)
+            loaded_options = f.read().splitlines()
+        # clean up duplicates from loaded list.
+        for w in known_candidates:
+            if w in loaded_options:
+                loaded_options.remove(w) 
+        unknown_candidates += loaded_options
+        #print(known_candidates, unknown_candidates)
         # remove word from known candidate list if there.
-        if word in known_candidates:
-            known_candidates.remove(word)
-        if word in unknown_candidates:
-            unknown_candidates.remove(word)
-        
-        print(known_candidates, unknown_candidates)
-        candidates = []
-        if known_candidates is not None:
-            candidates += known_candidates
-        else:
-            known_candidates = []
-        if unknown_candidates is not None:
-            candidates += unknown_candidates
-        else:
-            unknown_candidates = []
-
-        if len(candidates) <= 1:
-            # no candidates. must be new word.
-            # choice is made on your behalf
-            if len(candidates) == 0:
-                choice = 0
-            else: # only one choice
-                choice = 1
-            skip = True # skip confirmation
-        else:
-            skip = False # do not skip confirmation
-            i = 1
-            print("0: No mistake. Add word.")
-            print("Known:")
+        if word in kwfq.dictionary:
+            print("Word already seen.") 
+            uwfq.remove(word)
+            print("Removed from unknown list.")
+        else:  # word not known. make decision
             for w in known_candidates:
-                print("%d: %s"%(i, w))
-                i += 1
-            print("Unnown:")
-            for w in unknown_candidates:
-                print("%d: %s"%(i, w))
-                i += 1
-            choice = None
-            while choice not in range(len(candidates)+1):
-                try:
-                    choice = int(input("\nMake your selection: "))
-                    if choice not in range(len(candidates)+1):
-                        print("Please make a valid selection.")
-                except ValueError:
-                    print("Please make a valid selection.")
+                if w in unknown_candidates:
+                    unknown_candidates.remove(w) 
+            if word in known_candidates: # spellchecker returns word if not seen instead of empty list.
+                known_candidates.remove(word)
+            if word in unknown_candidates:
+                unknown_candidates.remove(word)
+            #print(known_candidates, unknown_candidates)
+            candidates = []
+            if known_candidates is not None:
+                candidates += known_candidates
+            else:
+                known_candidates = []
+            if unknown_candidates is not None:
+                candidates += unknown_candidates
+            else:
+                unknown_candidates = []
     
-        if choice == 0:
-            if skip:
-                ans = True
-                print("%s appears to be new. Adding."%word)
+            if len(candidates) == 0:
+                # no candidates. must be new word.
+                # choice is made on your behalf
+                if len(candidates) == 0:
+                    choice = 0
+                skip = True # skip confirmation
+            elif (len(unknown_candidates) == 0) and (len(known_candidates) == 1):
+                # one known and no unknowns.
+                choice = 1
+                print("Making correction to only known option.")
+                skip = True
             else:
-                print("Add %s to KNOWN?"%word)
-                ans = get_yn()
-
-            if ans:
-                kwfq.add(word)
-                uwfq.remove(word)
-                self.corrections[word] = []
-                print("Added word.")
-        else:
-            correction = candidates[choice-1]
-            if skip:
-                ans = True
-                print("%s appears to be the only candidate correction. Correcting %s."%(correction, word))
+                skip = False # do not skip confirmation
+                i = 1
+                print("0: No mistake. Add word.")
+                print("Known:")
+                for w in known_candidates:
+                    print("%d: %s"%(i, w))
+                    i += 1
+                print("Unknown:")
+                for w in unknown_candidates:
+                    print("%d: %s"%(i, w))
+                    i += 1
+                choice = None
+                while choice not in range(len(candidates)+1):
+                    try:
+                        choice = int(input("\nMake your selection: "))
+                        if choice not in range(len(candidates)+1):
+                            print("Please make a valid selection.")
+                    except ValueError:
+                        print("Please make a valid selection.")
+        
+            if choice == 0:
+                if skip:
+                    ans = True
+                    print("%s appears to be new. Adding."%word)
+                else:
+                    print("Add %s to KNOWN?"%word)
+                    ans = get_yn()
+    
+                if ans:
+                    kwfq.add(word)
+                    uwfq.remove(word)
+                    self.corrections[word] = []
+                    print("Added word.")
             else:
-                print("Correct %s ===> %s ?"%(word, correction))
-                ans = get_yn()
-
-            if ans:
-                kwfq.add(correction)
-                uwfq.remove(word)
-                print("Added correction.")
-                self.corrections[correction].append(word)
-                # to-do: get rid of other instances.
-
+                correction = candidates[choice-1]
+                if skip:
+                    ans = True
+                    print("%s appears to be the only candidate correction. Correcting %s."%(correction, word))
+                else:
+                    print("Correct %s ===> %s ?"%(word, correction))
+                    ans = get_yn()
+    
+                if ans:
+                    kwfq.add(correction)
+                    if word in uwfq.dictionary:
+                        print("Removing word from unknowns.")
+                        uwfq.remove(word)
+                    if correction in uwfq.dictionary:
+                        print("Removing correction from unknowns.")
+                        uwfq.remove(correction)
+                    print("Added correction.")
+                    # if first time adding alias, initialize list.
+                    if correction not in self.corrections:
+                        self.corrections[correction] = []
+                    self.corrections[correction].append(word)
+                    # to-do: get rid of other instances.
+   
     def save(self):
         """
         """
