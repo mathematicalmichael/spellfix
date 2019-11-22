@@ -1,11 +1,12 @@
 #!/usr/env/python
 import os
+import random
 import re
 from spellchecker import SpellChecker
 import json
 
 def format_str(word):
-        return re.sub(r'[,-./]|\sExt',r'', word).replace(' ', '_').lower()
+        return re.sub(r'[,-./]|\sExt',r'', word).replace(' ', '_').lower().replace(' ', '')
 
 def wipe_dictionary(spell):
     """
@@ -41,9 +42,15 @@ class Fixer(object):
         self.prefix = filename.replace('.txt', '').replace('.csv', '')
         self.known_file =  self.prefix + '-known_words.json'
         self.unknown_file = self.prefix + '-unknown_words.json'
-        self.corrections = {}
+        self.corrections_file = self.prefix + '-corrections.json'
+        if os.path.exists(self.corrections_file):
+             with open(self.corrections_file, 'r') as f:
+                self.corrections = json.load(f)
+        else:
+            self.corrections = {}
+
         self.threshold = 10
-        self.known = SpellChecker(distance=2, language=None, case_sensitive=False)
+        self.known = SpellChecker(distance=1, language=None, case_sensitive=False)
         if os.path.exists(self.known_file):
             print("Reading known")
             self.known.word_frequency.load_dictionary(self.known_file)
@@ -104,7 +111,13 @@ class Fixer(object):
             print("YOU ARE DONE!")
             return quit # FINISHED!
         else:
-            word = unknown_words[0]
+            r = len(unknown_words)
+            word = ''
+            j = 0 # how many times can we try passing through short words before giving up?
+            while (len(word) <= 4) and (j<10):
+                word = unknown_words[random.randint(0,r-1)]
+                j += 1
+
         #self.unknown.word_frequency.remove(word)
         # uwfq.remove(word)
         print("\t===> %s"%word)
@@ -129,13 +142,13 @@ class Fixer(object):
             uwfq.remove(word)
             print("Removed from unknown list.")
         else:  # word not known. make decision
+            if word in known_candidates: # spellchecker returns word if not seen
+                known_candidates.remove(word)
             for w in known_candidates:
                 if w in unknown_candidates:
                     unknown_candidates.remove(w) 
-            if word in known_candidates: # spellchecker returns word if not seen instead of empty list.
-                known_candidates.remove(word)
-            #if word in unknown_candidates and len(known_candidates) > 0:
-            #    unknown_candidates.remove(word)
+            if word in unknown_candidates and len(known_candidates) >= 0:
+                unknown_candidates.remove(word)
             #print(known_candidates, unknown_candidates)
             candidates = []
             if known_candidates is not None:
@@ -162,7 +175,7 @@ class Fixer(object):
             else:
                 skip = False # do not skip confirmation
                 i = 1
-                #print("0: No mistake. Add word.")
+                print("0: No mistake. Add word.")
                 print("Known:")
                 for w in known_candidates:
                     p = 100*self.known.word_probability(w)
@@ -177,6 +190,8 @@ class Fixer(object):
                 all_choices = choices + ['Q', 'U', 'K', 'L', 'S'] 
                 while choice not in all_choices:
                     choice = input("\nMake your selection: ")
+                    if choice == '':
+                        choice = 'S'
                     if choice not in all_choices:
                         print("Please make a valid selection.")
         
@@ -191,7 +206,7 @@ class Fixer(object):
                 if ans:
                     kwfq.add(word)
                     uwfq.remove(word)
-                    self.corrections[word] = []
+                    #self.corrections[word] = []
                     print("Added word.")
             elif choice in choices:
                 choice = int(choice) # numerical choice.
@@ -211,11 +226,11 @@ class Fixer(object):
                     if correction in uwfq.dictionary:
                         print("Removing %s from unknowns."%correction)
                         uwfq.remove(correction)
-                    print("Added correction.")
+                    print("Added %s to knowns."%correction)
                     # if first time adding alias, initialize list.
-                    if correction not in self.corrections:
-                        self.corrections[correction] = []
-                    if correction != word: # two possible ways to "add word", can "correct to itself"
+                    if correction != word: 
+                        if correction not in self.corrections:
+                            self.corrections[correction] = []
                         self.corrections[correction].append(word)
                     else: # graceful "error" handling without crashing.
                         print("Correcting word to itself. Adding as new instead.")
@@ -231,7 +246,7 @@ class Fixer(object):
             json.dump(self.unknown.word_frequency.dictionary, f)
         with open(self.known_file, 'w') as f:
             json.dump(self.known.word_frequency.dictionary, f)
-        with open(self.prefix + '-corrections.json', 'w') as f:
+        with open(self.corrections_file, 'w') as f:
             json.dump(self.corrections, f)
 
         print("SAVED!") 
