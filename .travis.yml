@@ -17,7 +17,9 @@ addons:
   apt:
     packages:
       - gcc
-
+      - gfortran
+      - libblas-dev
+      - liblapack-dev
 jobs:
   include:
 #    - name: "Python 2.7 on Xenial"
@@ -160,7 +162,8 @@ before_install:
   - pip install numpy cython
 
 install:
-  - pip install -U .[testing]
   - pip install .
+  - pip install .[testing]
+  - pip install .[recommend]
 
 script: pytest
