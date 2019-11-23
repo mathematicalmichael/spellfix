@@ -1,6 +1,8 @@
 #!/usr/env/python
+import os
 import re
 from spellchecker import SpellChecker
+import json
 
 def format_str(word):
         return re.sub(r'[,-./]|\sExt',r'', word).replace(' ', '_').lower()
@@ -19,7 +21,7 @@ def wipe_dictionary(spell):
 
 def pre_process_file(filename):
     fin = open(filename)
-    fout = open("words.txt", "wt")
+    fout = open("words.txt", "wt") # temporary file for processed words
     for line in fin:
         #newline = line.lower().replace(' ', '').replace('\'','').replace(',','').replace('-','')
         newline = format_str(line)
@@ -30,15 +32,42 @@ def pre_process_file(filename):
 
 class Fixer(object):
     def __init__(self, filename):
-        self.known_file = 'known_words.txt'
-        self.unknown_file = 'unknown_words.txt'
+        """
+        
+        Parameters
+        ----------
+          filename: CSV or TXT file, one entry per line.
+        """
+        self.prefix = filename.replace('.txt', '').replace('.csv', '')
+        self.known_file =  self.prefix + '-known_words.json'
+        self.unknown_file = self.prefix + '-unknown_words.json'
         self.corrections = {}
+        self.threshold = 10
         self.known = SpellChecker(distance=2, language=None, case_sensitive=False)
+        if os.path.exists(self.known_file):
+            print("Reading known")
+            self.known.word_frequency.load_dictionary(self.known_file)
+
         self.unknown = SpellChecker(distance=2, language=None, case_sensitive=False)        
-        #self.known = wipe_dictionary(known)
-        #self.unknown = wipe_dictionary(unknown)
-        pre_process_file(filename)
-        self.unknown.word_frequency.load_text_file('words.txt')
+        if os.path.exists(self.unknown_file):
+            print("Reading unknown")
+            self.unknown.word_frequency.load_dictionary(self.unknown_file)
+            if not os.path.exists(self.known_file):
+                print("Making known by trimming unknown")
+                self.known.word_frequency.load_dictionary(self.unknown_file)
+                self.known.word_frequency.remove_by_threshold(self.threshold)
+                keys = [x for x in self.known.word_frequency._dictionary.keys()]
+                for key in keys:
+                    wordfreq = self.unknown.word_frequency._dictionary[key]
+                    if  wordfreq > self.threshold:
+                        print("Removing %s from unknown because above threshold of %d"%(key, self.threshold))
+                        self.unknown.word_frequency._dictionary.pop(key)
+                self.unknown.word_frequency._update_dictionary()
+
+        else:
+            print("Loading file.")
+            pre_process_file(filename) # creates a words.txt file for us
+            self.unknown.word_frequency.load_text_file('words.txt')
 
     def get_counts(self):
         """
@@ -66,22 +95,27 @@ class Fixer(object):
     def correct(self):
         """
         """
+        quit = False
         uwfq = self.unknown.word_frequency
         kwfq = self.known.word_frequency
         unknown_words = list(uwfq.dictionary.keys())
-        word = unknown_words[0]
-        #self.unknown.word_frequency.pop(word)
+        if len(unknown_words) == 0:
+            quit = True
+            print("YOU ARE DONE!")
+            return quit # FINISHED!
+        else:
+            word = unknown_words[0]
+        #self.unknown.word_frequency.remove(word)
         # uwfq.remove(word)
         print("\t===> %s"%word)
-        # TODO: COMPLETELY CHANGE THE CANDIDATE GENERATION
         known_candidates = list(self.known.candidates(word))
         unknown_candidates = list(self.unknown.candidates(word))
-        fname = 'matches/' + format_str(word) + '.csv'
+        fname = self.prefix + '-matches/' + format_str(word) + '.csv'
         try:
             with open(fname, 'r') as f:
                 loaded_options = f.read().splitlines()
             # clean up duplicates from loaded list.
-            for w in known_candidates:
+            for w in known_candidates + unknown_candidates:
                if w in loaded_options:
                     loaded_options.remove(w) 
             unknown_candidates += loaded_options
@@ -100,8 +134,8 @@ class Fixer(object):
                     unknown_candidates.remove(w) 
             if word in known_candidates: # spellchecker returns word if not seen instead of empty list.
                 known_candidates.remove(word)
-            if word in unknown_candidates:
-                unknown_candidates.remove(word)
+            #if word in unknown_candidates and len(known_candidates) > 0:
+            #    unknown_candidates.remove(word)
             #print(known_candidates, unknown_candidates)
             candidates = []
             if known_candidates is not None:
@@ -113,39 +147,40 @@ class Fixer(object):
             else:
                 unknown_candidates = []
     
+            choices = [str(s) for s in range(len(candidates)+1)]
             if len(candidates) == 0:
                 # no candidates. must be new word.
                 # choice is made on your behalf
                 if len(candidates) == 0:
-                    choice = 0
+                    choice = '0'
                 skip = True # skip confirmation
             elif (len(unknown_candidates) == 0) and (len(known_candidates) == 1):
                 # one known and no unknowns.
-                choice = 1
+                choice = '1'
                 print("Making correction to only known option.")
                 skip = True
             else:
                 skip = False # do not skip confirmation
                 i = 1
-                print("0: No mistake. Add word.")
+                #print("0: No mistake. Add word.")
                 print("Known:")
                 for w in known_candidates:
-                    print("%d: %s"%(i, w))
+                    p = 100*self.known.word_probability(w)
+                    print("%d: %s - %f%%"%(i, w, p))
                     i += 1
                 print("Unknown:")
                 for w in unknown_candidates:
-                    print("%d: %s"%(i, w))
+                    p = 100*self.unknown.word_probability(w)
+                    print("%d: %s - %f%%"%(i, w, p))
                     i += 1
                 choice = None
-                while choice not in range(len(candidates)+1):
-                    try:
-                        choice = int(input("\nMake your selection: "))
-                        if choice not in range(len(candidates)+1):
-                            print("Please make a valid selection.")
-                    except ValueError:
+                all_choices = choices + ['Q', 'U', 'K', 'L', 'S'] 
+                while choice not in all_choices:
+                    choice = input("\nMake your selection: ")
+                    if choice not in all_choices:
                         print("Please make a valid selection.")
         
-            if choice == 0:
+            if choice == '0':
                 if skip:
                     ans = True
                     print("%s appears to be new. Adding."%word)
@@ -158,7 +193,8 @@ class Fixer(object):
                     uwfq.remove(word)
                     self.corrections[word] = []
                     print("Added word.")
-            else:
+            elif choice in choices:
+                choice = int(choice) # numerical choice.
                 correction = candidates[choice-1]
                 if skip:
                     ans = True
@@ -170,23 +206,35 @@ class Fixer(object):
                 if ans:
                     kwfq.add(correction)
                     if word in uwfq.dictionary:
-                        print("Removing word from unknowns.")
+                        print("Removing %s from unknowns."%word)
                         uwfq.remove(word)
                     if correction in uwfq.dictionary:
-                        print("Removing correction from unknowns.")
+                        print("Removing %s from unknowns."%correction)
                         uwfq.remove(correction)
                     print("Added correction.")
                     # if first time adding alias, initialize list.
                     if correction not in self.corrections:
                         self.corrections[correction] = []
-                    self.corrections[correction].append(word)
+                    if correction != word: # two possible ways to "add word", can "correct to itself"
+                        self.corrections[correction].append(word)
+                    else: # graceful "error" handling without crashing.
+                        print("Correcting word to itself. Adding as new instead.")
                     # to-do: get rid of other instances.
-   
+            else:
+                quit = select_option(self, choice)
+            return quit
+
     def save(self):
         """
         """
-        
-        pass
+        with open(self.unknown_file, 'w') as f:
+            json.dump(self.unknown.word_frequency.dictionary, f)
+        with open(self.known_file, 'w') as f:
+            json.dump(self.known.word_frequency.dictionary, f)
+        with open(self.prefix + '-corrections.json', 'w') as f:
+            json.dump(self.corrections, f)
+
+        print("SAVED!") 
 
     def show_corrections(self):
         """
@@ -196,7 +244,7 @@ class Fixer(object):
 def get_yn():
     loop = 1
     while loop:
-        choice = input("Confirm (Y/N):")
+        choice = input("Confirm ([Y]/N):")
         if choice in ['y', 'Y', '1', '']:
             return True
         elif choice in ['n', 'N', '0']:
@@ -214,45 +262,58 @@ U: See unknown list.
 L: See corrections list.
 """
 
+def select_option(fix, choice):
+    quit = False
+    # quit
+    if choice in ['0', 'Q', 'q']:
+        quit = True
+        print("Exiting...")
+    # correct   
+    elif choice in ['C', 'c', '']:  # default choice
+        fix.correct()
+    # save
+    elif choice in ['S', 's']:
+        fix.save()
+    # edit
+    elif choice in ['E', 'e']:
+        pass
+    # see knowns
+    elif choice in ['K', 'k']:
+        k = fix.show_known()
+        print(k)
+    # see unknowns
+    elif choice in ['U', 'u']:
+        u = fix.show_unknown()
+        print(u)
+    elif choice in ['L', 'l']:
+        l = fix.show_corrections()
+        print(l)
+    else:
+        print("Choice not understood. Please try again.")
+        pass
+    return quit
+ 
 def mainmenu(fix):
     """
     Interactive Program for editing typos
     """
-    live = 1
-    while live:
+    quit = False
+    i = 0
+    while not quit:
         counts = fix.get_counts()
         print("=====================")
         print("Done: %d, Remaining: %d"%(counts))
         print(menu)
-        choice = input("Make choice from menu: ")
-        # quit
-        if choice in ['0', 'Q', 'q']:
-            live = 0
-            print("Exiting...")
-        # correct   
-        elif choice in ['C', 'c', '']:  # default choice
-            fix.correct()
-        # save
-        elif choice in ['S', 's']:
-            fix.save()
-        # edit
-        elif choice in ['E', 'e']:
-            continue
-        # see knowns
-        elif choice in ['K', 'k']:
-            k = fix.show_known()
-            print(k)
-        # see unknowns
-        elif choice in ['U', 'u']:
-            u = fix.show_unknown()
-            print(u)
-        elif choice in ['L', 'l']:
-            l = fix.show_corrections()
-            print(l)
-        else:
-            print("Choice not understood. Please try again.")
-            continue
- 
+        quit = fix.correct()
+        i += 1
+        if i%100 == 0:
+            print("100 iterations automated. Would you like to proceed?")
+            choice = input("Make choice from menu: ")
+            if choice in ['C', 'c', '']:
+                continue
+            else:
+                quit = select_option(fix,choice) 
+    
     return None
 
 def main():

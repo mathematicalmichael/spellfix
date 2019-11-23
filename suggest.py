@@ -74,7 +74,7 @@ def names_from_file(filename='wordlist.txt', header=None):
     company_names = names['Company Name'].unique()
     return company_names
 
-def make_matches(company_names, ntop=10, thresh=0.75):
+def make_matches(company_names, ntop=10, thresh=0.50):
     """
     Use scikit-learn's `TfidVectorizer` to embed into word-space.
     """
@@ -97,7 +97,7 @@ def groupings_to_csv(grouped_df, foldername='matches'):
     for k, gr in grouped_df:
         print("Processing {}".format(k))
         fname = format_str(k)
-        gr['right_side'].apply(lambda x: format_str(x)).to_csv('matches/{}.csv'.format(fname), index=False, header=False )
+        gr['right_side'].apply(lambda x: format_str(x)).to_csv('{}/{}.csv'.format(foldername, fname), index=False, header=False )
 
     group_counts = grouped_df.count()
     group_counts.to_csv('{}-groups.csv'.format(foldername))
@@ -105,21 +105,32 @@ def groupings_to_csv(grouped_df, foldername='matches'):
 
 ##########
 
-def main():
-    # TODO: take argparse
-    company_names = names_from_file('wordlist.txt')
+def main(fname):
+    company_names = names_from_file(fname)
     matches = make_matches(company_names)
     matches_df = get_matches_df(matches, company_names, top=None)
     matches_df = matches_df[matches_df['similarity'] < 0.99999] # Remove all exact matches
     
     samps_sorted = matches_df.sort_values(['similarity'], ascending=False)
     lgrouped = samps_sorted[['left_side', 'right_side']].groupby('left_side', sort=True)
-
-    group_counts = groupings_to_csv(lgrouped, 'matches') 
+    prefix = fname.replace('.csv', '').replace('.txt', '')
+    group_counts = groupings_to_csv(lgrouped, prefix + '-matches') 
 
     return group_counts
 
 if __name__ == '__main__':
-    group_counts = main()
+    import argparse
+    import os
+    desc = "Generate suggestions for possible corrections."
+    parser = argparse.ArgumentParser(description=desc)
+    parser.add_argument('-f', '--file',
+                        default='wordlist.txt',
+                        type=str,
+                        help='File name of words to correct.')
+    args = parser.parse_args()
+    filename = args.file
+    if not os.path.exists(filename):
+        raise ValueError("File %s does not exist."%filename)
+    group_counts = main(filename)
     print(group_counts)
 
