@@ -18,11 +18,10 @@ git:
   depth: 3
   quiet: False
 
-branches:
-  only:
-    - master
-    - develop
-    - feature/*
+#branches:
+#  only:
+#    - master
+#    - develop
 
 addons:
   apt:
