@@ -13,6 +13,17 @@ python:
   - 3.8
   - 3.8-dev
 
+
+git:
+  depth: 3
+  quiet: False
+
+branches:
+  only:
+    - master
+    - develop
+    - feature/*
+
 addons:
   apt:
     packages:
@@ -21,8 +32,10 @@ addons:
       - libblas-dev
       - liblapack-dev
 jobs:
-  allow_failures:
-     - os: osx
+#  allow_failures:
+#     - os: osx
+#     - os: windows
+
   include:
 #    - name: "Python 2.7 on Xenial"
 #      python: 2.7
