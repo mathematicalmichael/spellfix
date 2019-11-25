@@ -21,6 +21,8 @@ addons:
       - libblas-dev
       - liblapack-dev
 jobs:
+  allow_failures:
+     - os: osx
   include:
 #    - name: "Python 2.7 on Xenial"
 #      python: 2.7
@@ -57,6 +59,7 @@ jobs:
       dist: bionic
 
 # ======= OSX ========
+# reference: https://docs.travis-ci.com/user/reference/osx/
 #    - name: "Python 2.7.14 on macOS 10.13" # not running recommendation tests.
 #      os: osx
 #      osx_image: xcode9.3  # Python 2.7.14_2 running on macOS 10.13
@@ -75,6 +78,7 @@ jobs:
       before_install:
         - python3 --version
         - pip3 install -U pip
+        - pip install cython  # errors without this
       install:  # need to use pip3 to ensure we're not accidentally using python 2.7
         - pip3 install -U .[testing]
         - pip3 install -U .[recommend]
@@ -96,7 +100,7 @@ jobs:
 
     - name: "Python 3.7.4 on macOS 10.14"
       os: osx
-      osx_image: xcode11.2  # Python 3.7.4 running on macOS 10.14.4
+      osx_image: xcode11.2  # Python 3.7.4 running on macOS 10.14.4 (also on xcode10.3)
       language: shell       # 'language: python' is an error on Travis CI macOS
       before_install:
         - python3 --version
