@@ -125,7 +125,7 @@ jobs:
         - choco install python --version 3.5.4
         - python --version
         - python -m pip install -U pip
-        - pip install numpy
+        - pip install numpy cython
       env: PATH=/c/Python35:/c/Python35/Scripts:$PATH
 
     - name: "Python 3.6.8 on Windows"
@@ -135,7 +135,7 @@ jobs:
         - choco install python --version 3.6.8
         - python --version
         - python -m pip install -U pip
-        - pip install numpy
+        - pip install numpy cython
       env: PATH=/c/Python36:/c/Python36/Scripts:$PATH
 
     - name: "Python 3.7.4 on Windows"
@@ -145,7 +145,7 @@ jobs:
         - choco install python --version 3.7.4
         - python --version
         - python -m pip install -U pip
-        - pip install numpy
+        - pip install numpy cython
       env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
 
     - name: "Python 3.8 on Windows"
@@ -155,15 +155,15 @@ jobs:
         - choco install python --version 3.8
         - python --version
         - python -m pip install -U pip
-        - pip install numpy
+        - pip install numpy cython
       env: PATH=/c/Python38:/c/Python38/Scripts:$PATH
 
 
 before_install:
   - python --version
   - pip install -U pip
-  # if numpy is missing, errors come up with installation.
-  - pip install numpy
+  # if numpy or cython is missing, errors come up with installation.
+  - pip install numpy cython
 
 install:
   - pip install .
