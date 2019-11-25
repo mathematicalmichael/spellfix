@@ -67,8 +67,7 @@ jobs:
 #      install:  # this needs a special flag.
 #        - pip install -U .[testing] --user
 #      script: python -m pytest
-#      after_success: python  -m codecov
-#
+
     - name: "Python 3.6.5 on macOS 10.13"
       os: osx
       osx_image: xcode9.4  # Python 3.6.5 running on macOS 10.13
@@ -78,9 +77,9 @@ jobs:
         - pip3 install -U pip
       install:  # need to use pip3 to ensure we're not accidentally using python 2.7
         - pip3 install -U .[testing]
+        - pip3 install -U .[recommend]
         - pip3 install .
       script: python3 -m pytest
-      after_success: python 3 -m codecov
 
     - name: "Python 3.7.3 on macOS 10.14"
       os: osx
@@ -91,9 +90,9 @@ jobs:
         - pip3 install -U pip
       install:
         - pip3 install -U .[testing]
+        - pip3 install -U .[recommend]
         - pip3 install .
       script: python3 -m pytest
-      after_success: python 3 -m codecov
 
     - name: "Python 3.7.4 on macOS 10.14"
       os: osx
@@ -104,9 +103,9 @@ jobs:
         - pip3 install -U pip
       install:
         - pip3 install -U .[testing]
+        - pip3 install -U .[recommend]
         - pip3 install .
       script: python3 -m pytest
-      after_success: python 3 -m codecov
 
 ##  ====== WINDOWS =========
 #    - name: "Python 2.7 on Windows"
@@ -116,6 +115,9 @@ jobs:
 #        - choco install python2
 #        - python --version
 #        - python -m pip install -U pip
+#       install: 
+#         - pip install -U .[testing]
+#         - pip install .
 #      env: PATH=/c/Python27:/c/Python27/Scripts:$PATH
 #
     - name: "Python 3.5.4 on Windows"
