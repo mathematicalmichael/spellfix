@@ -73,7 +73,7 @@ def perturb(name, r=None):
     elif r == 3:
         return chop_letter(name)
 
-if __name__ == '__main__':
+def main():
     import argparse
     desc = "Typo Corrector!"
     parser = argparse.ArgumentParser(description=desc)
@@ -107,3 +107,6 @@ if __name__ == '__main__':
                     new_name = name
                 f.write(new_name + '\n')
     print("Num changes: %d\nNum lines: %d"%(num_changes, num_lines))
+
+if __name__ == '__main__':
+    main()

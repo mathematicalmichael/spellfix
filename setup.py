@@ -26,6 +26,6 @@ setup(
         'recommend': recommend,
         'testing': setup_requires,
     },
-    py_modules=['make_names'],
+    py_modules=['make_names', 'spellfix'],
     packages=find_packages()
 )

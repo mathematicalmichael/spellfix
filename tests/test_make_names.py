@@ -75,4 +75,4 @@ def test_perturb():
                len(random_choice) == target_len - 1
 
 def test_script():
-    os.system("python3 make_names.py")
+    mkn.main()
