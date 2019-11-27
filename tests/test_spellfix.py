@@ -6,7 +6,8 @@ import spellfix
 def test_script(monkeypatch):
     mkn.main() # make text file
     # test options
-    monkeypatch.setattr('builtins.input', lambda x: 'Q')
+    opt = 'Q'
+    monkeypatch.setattr('builtins.input', lambda x: opt)
     spellfix.main()
     # make sure the right files got created/saved
     assert os.path.exists('words.txt')
