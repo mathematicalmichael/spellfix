@@ -187,5 +187,7 @@ install:
   - pip install .
   - pip install .[testing]
   - pip install .[recommend]
+  - python make_names.py
+  - python suggest.py
 
 script: pytest
