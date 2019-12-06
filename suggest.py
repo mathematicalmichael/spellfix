@@ -1,5 +1,6 @@
 import re
 import os
+import json
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
@@ -84,24 +85,31 @@ def make_matches(company_names, ntop=10, thresh=0.50):
     return matches 
 
 
-def groupings_to_csv(grouped_df, foldername='matches'):
+def groupings_to_file(grouped_df, foldername='matches', ftype='json'):
     """
     Dump results of df.groupby() to a folder.
     Each group gets its own CSV file without indices or headers.
     """
-    if not os.path.exists(foldername):
-        os.mkdir(foldername)
-    else:
-        os.system('rm {}/*'.format(foldername))
-
+    if ftype == 'csv':
+        if not os.path.exists(foldername+'-matches'):
+            os.mkdir(foldername)
+        else:
+            os.system('rm {}/*'.format(foldername+'-matches'))
+    D = {} 
     for k, gr in grouped_df:
         print("Processing {}".format(k))
         fname = format_str(k)
-        gr['right_side'].apply(lambda x: format_str(x)).to_csv('{}/{}.csv'.format(foldername, fname), index=False, header=False )
-
+        tmp_df = gr['right_side'].apply(lambda x: format_str(x))
+        if ftype == 'csv':
+            tmp_df.to_csv('{}/{}.csv'.format(foldername+'-matches', fname), index=False, header=False )
+        
+        D[format_str(k)] = tmp_df.tolist()
+    with open(foldername+'-suggestions.json','w') as f:
+        json.dump(D,f)
     group_counts = grouped_df.count()
-    group_counts.to_csv('{}-groups.csv'.format(foldername))
+    group_counts.to_csv('{}-groups.csv'.format(foldername), header=False)
     return group_counts
+
 
 ##########
 
@@ -114,7 +122,7 @@ def main(fname):
     samps_sorted = matches_df.sort_values(['similarity'], ascending=False)
     lgrouped = samps_sorted[['left_side', 'right_side']].groupby('left_side', sort=True)
     prefix = fname.replace('.csv', '').replace('.txt', '')
-    group_counts = groupings_to_csv(lgrouped, prefix + '-matches') 
+    group_counts = groupings_to_file(lgrouped, prefix) 
 
     return group_counts
 

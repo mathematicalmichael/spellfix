@@ -4,3 +4,4 @@ numpy>= 1.11.0
 scikit-learn
 cython
 sparse_dot_topn
+sklearn

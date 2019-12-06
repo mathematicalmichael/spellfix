@@ -5,6 +5,9 @@ import re
 from spellchecker import SpellChecker
 import json
 
+def unique(wordlist):
+    return list(set(wordlist))
+
 def format_str(word):
         return re.sub(r'[,-./]|\sExt',r'', word).replace(' ', '_').lower().replace(' ', '')
 
@@ -50,7 +53,14 @@ class Fixer(object):
             self.corrections = {}
 
         self.threshold = 10
-        self.known = SpellChecker(distance=1, language=None, case_sensitive=False)
+        self.suggest = None
+        self.suggest_file = self.prefix + '-suggestions.json'
+        if os.path.exists(self.suggest_file):
+            print("Reading suggestions.")
+            with open(self.suggest_file, 'r') as f:
+                self.suggest = json.load(f)
+
+        self.known = SpellChecker(distance=2, language=None, case_sensitive=False)
         if os.path.exists(self.known_file):
             print("Reading known")
             self.known.word_frequency.load_dictionary(self.known_file)
@@ -106,6 +116,8 @@ class Fixer(object):
         uwfq = self.unknown.word_frequency
         kwfq = self.known.word_frequency
         unknown_words = list(uwfq.dictionary.keys())
+        suggest = self.suggest
+
         if len(unknown_words) == 0:
             quit = True
             print("YOU ARE DONE!")
@@ -123,17 +135,11 @@ class Fixer(object):
         print("\t===> %s"%word)
         known_candidates = list(self.known.candidates(word))
         unknown_candidates = list(self.unknown.candidates(word))
-        fname = self.prefix + '-matches/' + format_str(word) + '.csv'
-        try:
-            with open(fname, 'r') as f:
-                loaded_options = f.read().splitlines()
-            # clean up duplicates from loaded list.
-            for w in known_candidates + unknown_candidates:
-               if w in loaded_options:
-                    loaded_options.remove(w) 
-            unknown_candidates += loaded_options
-        except FileNotFoundError: # sometimes the TFidF doesn't match words
-            loaded_options = []
+        if word in suggest.keys():
+            unknown_candidates += suggest[word]
+        # remove duplicates
+        unknown_candidates = unique(unknown_candidates)
+        known_candidates = unique(known_candidates)
 
         #print(known_candidates, unknown_candidates)
         # remove word from known candidate list if there.
@@ -178,6 +184,7 @@ class Fixer(object):
                 print("0: No mistake. Add word.")
                 print("Known:")
                 for w in known_candidates:
+                    #TODO change probability
                     p = 100*self.known.word_probability(w)
                     print("%d: %s - %f%%"%(i, w, p))
                     i += 1
