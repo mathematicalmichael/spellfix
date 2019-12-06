@@ -59,7 +59,8 @@ class Fixer(object):
             print("Reading suggestions.")
             with open(self.suggest_file, 'r') as f:
                 self.suggest = json.load(f)
-
+        
+        self.skipped = []
         self.known = SpellChecker(distance=2, language=None, case_sensitive=False)
         if os.path.exists(self.known_file):
             print("Reading known")
@@ -109,6 +110,19 @@ class Fixer(object):
         """
         return self.unknown.word_frequency.dictionary
 
+    def show_skipped(self):
+        """
+        """
+        return self.skipped
+
+    def skip(self):
+        """
+        Add word to skip list and remove from unknown words.
+        """
+        print("Skipping %s"%self.word)
+        self.skipped.append(self.word)
+        self.unknown.word_frequency.remove(self.word)
+
     def correct(self):
         """
         """
@@ -117,7 +131,7 @@ class Fixer(object):
         kwfq = self.known.word_frequency
         unknown_words = list(uwfq.dictionary.keys())
         suggest = self.suggest
-
+        
         if len(unknown_words) == 0:
             quit = True
             print("YOU ARE DONE!")
@@ -125,10 +139,16 @@ class Fixer(object):
         else:
             r = len(unknown_words)
             word = ''
-            j = 0 # how many times can we try passing through short words before giving up?
-            while (len(word) <= 4) and (j<10):
-                word = unknown_words[random.randint(0,r-1)]
-                j += 1
+            self.word = word
+            random = False
+            if random:
+                j = 0 # how many times can we try passing through short words before giving up?
+                while (len(word) <= 4) and (j<10):
+                    word = unknown_words[random.randint(0,r-1)]
+                    j += 1
+            else:
+                word = unknown_words[0]
+                self.word = word # store for reference
 
         #self.unknown.word_frequency.remove(word)
         # uwfq.remove(word)
@@ -194,17 +214,18 @@ class Fixer(object):
                     print("%d: %s - %f%%"%(i, w, p))
                     i += 1
                 choice = None
-                all_choices = choices + ['Q', 'U', 'K', 'L', 'S'] 
+                letter_choices =  ['Q', 'P', 'O', 'U', 'K', 'L', 'S']
+                all_choices = choices + letter_choices + [s.lower() for s in letter_choices] 
                 while choice not in all_choices:
                     choice = input("\nMake your selection: ")
-                    if choice == '':
+                    if choice == '': # overwriting default
                         choice = 'S'
                     if choice not in all_choices:
                         print("Please make a valid selection.")
         
-            if choice == '0':
+            if choice == '0': # no mistake
                 if skip:
-                    ans = True
+                    ans = True # answer = automate
                     print("%s appears to be new. Adding."%word)
                 else:
                     print("Add %s to KNOWN?"%word)
@@ -215,6 +236,8 @@ class Fixer(object):
                     uwfq.remove(word)
                     #self.corrections[word] = []
                     print("Added word.")
+                    self.clean()
+
             elif choice in choices:
                 choice = int(choice) # numerical choice.
                 correction = candidates[choice-1]
@@ -227,13 +250,16 @@ class Fixer(object):
     
                 if ans:
                     kwfq.add(correction)
+                    print("Added %s to knowns."%correction)
                     if word in uwfq.dictionary:
                         print("Removing %s from unknowns."%word)
                         uwfq.remove(word)
+                    if correction in self.skipped:
+                        self.skipped.remove(correction)
                     if correction in uwfq.dictionary:
                         print("Removing %s from unknowns."%correction)
                         uwfq.remove(correction)
-                    print("Added %s to knowns."%correction)
+
                     # if first time adding alias, initialize list.
                     if correction != word: 
                         if correction not in self.corrections:
@@ -241,10 +267,31 @@ class Fixer(object):
                         self.corrections[correction].append(word)
                     else: # graceful "error" handling without crashing.
                         print("Correcting word to itself. Adding as new instead.")
-                    # to-do: get rid of other instances.
+                    
+                    # go through list and remove words
+                    self.clean()        
             else:
                 quit = select_option(self, choice)
             return quit
+
+
+    def clean(self):
+        # we already pulled the suggestions for this word
+        # so we can remove it from the dictionary.
+        if self.word in self.suggest.keys():
+            self.suggest.pop(self.word)
+        # now we want to go through the rest of the keys
+        # and remove instances of the word that appear
+        # as suggestions for other (unseen) words.
+        # since we know it is an invalid spelling, 
+        # it should not appear anymore as an option
+        # which should expedite auto-corrections
+        for key in self.suggest.keys():
+            if self.word in self.suggest[key]:
+                self.suggest[key].remove(self.word)
+                    
+        if self.word in self.skipped:
+            self.skipped.remove(self.word)
 
     def save(self):
         """
@@ -276,6 +323,8 @@ def get_yn():
 
 menu = """
 Q. Quit/Exit.
+P: Skip word.
+O: Show skipped words.
 S. Save files to disk.
 E. Edit existing entries.
 K: See known list.
@@ -289,6 +338,11 @@ def select_option(fix, choice):
     if choice in ['0', 'Q', 'q']:
         quit = True
         print("Exiting...")
+    # skip   
+    elif choice in ['P', 'p']:
+        fix.skip()
+    elif choice in ['O', 'o']:
+        fix.show_skipped()
     # correct   
     elif choice in ['C', 'c', '']:  # default choice
         fix.correct()
