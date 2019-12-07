@@ -197,6 +197,13 @@ class Fixer(object):
             else:
                 unknown_candidates = []
     
+            # build probabilities
+            freqs = [uwfq.dictionary[word]]
+            freqs += [ kwfq.dictionary[w] for w in known_candidates]
+            freqs += [ uwfq.dictionary[w] for w in unknown_candidates]
+            tot_words = sum(freqs)
+            probs = [f/tot_words for f in freqs]
+
             choices = [str(s) for s in range(len(candidates)+1)]
             if len(candidates) == 0:
                 # no candidates. must be new word.
@@ -204,25 +211,31 @@ class Fixer(object):
                 if len(candidates) == 0:
                     choice = '0'
                 skip = True # skip confirmation
-            elif (len(unknown_candidates) == 0) and (len(known_candidates) == 1):
-                # one known and no unknowns.
+            elif (len(unknown_candidates) == 0) and (len(known_candidates) == 1) and (probs[1] > 2*probs[0]):
+                # one known and no unknowns, high prob of being other word
+                # threshold is "twice as often"
                 choice = '1'
-                print("Making correction to only known option.")
+                print("Making correction to only known option (higher probability than being new.).")
+                skip = True
+            elif (len(unknown_candidates) == 0) and (len(known_candidates) == 1) and (probs[0] > 2*probs[1]):
+                # one known and no unknowns, higher prob of being new
+                choice = '0'
+                print("Adding word (higher probability of being new).")
                 skip = True
             else:
                 skip = False # do not skip confirmation
+                print("0: No mistake. Add word. %2.2f%%"%(100*probs[0]))
                 i = 1
-                print("0: No mistake. Add word.")
                 print("Known:")
                 for w in known_candidates:
                     #TODO change probability
-                    p = 100*self.known.word_probability(w)
-                    print("%d: %s - %f%%"%(i, w, p))
+                    p = 100*probs[i]
+                    print("%d: %s - %2.2f%%"%(i, w, p))
                     i += 1
                 print("Unknown:")
                 for w in unknown_candidates:
-                    p = 100*self.unknown.word_probability(w)
-                    print("%d: %s - %f%%"%(i, w, p))
+                    p = 100*probs[i]
+                    print("%d: %s - %2.2f%%"%(i, w, p))
                     i += 1
                 choice = None
                 letter_choices =  ['Q', 'P', 'O', 'U', 'K', 'L', 'S']
@@ -246,6 +259,10 @@ class Fixer(object):
                     # need to do this for correct frequency counts
                     for _ in range(uwfq.dictionary[word]):
                         kwfq.add(word)
+                    # give extra instances because it was added by user
+                    for _ in range(5):
+                        kwfq.add(word)
+                    # remove from unknowns.
                     uwfq.remove(word)
                     #self.corrections[word] = []
                     print("Added word.")
@@ -263,6 +280,9 @@ class Fixer(object):
     
                 if ans:
                     for _ in range(uwfq.dictionary[correction]):
+                        kwfq.add(correction) 
+                    # absorb frequencies
+                    for _ in range(uwfq.dictionary[word]):
                         kwfq.add(correction)
                     print("Added %s to knowns."%correction)
                     if word in uwfq.dictionary:
@@ -280,6 +300,9 @@ class Fixer(object):
                     if correction != word: 
                         if correction not in self.corrections:
                             self.corrections[correction] = []
+                            # if first time, give extra emphasis
+                            for _ in range(3):
+                                kwfq.add(correction)
                         self.corrections[correction].append(word)
                     else: # graceful "error" handling without crashing.
                         print("Correcting word to itself. Adding as new instead.")
