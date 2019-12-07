@@ -60,7 +60,7 @@ class Fixer(object):
             with open(self.suggest_file, 'r') as f:
                 self.suggest = json.load(f)
         
-        self.skipped = []
+        self.skipped = {}
         self.known = SpellChecker(distance=2, language=None, case_sensitive=False)
         if os.path.exists(self.known_file):
             print("Reading known")
@@ -120,8 +120,14 @@ class Fixer(object):
         Add word to skip list and remove from unknown words.
         """
         print("Skipping %s"%self.word)
-        self.skipped.append(self.word)
+        self.skipped[self.word] = self.unknown.word_frequency.dictionary[self.word]
         self.unknown.word_frequency.remove(self.word)
+
+    def dump_skipped(self):
+        for word in self.skipped:
+            for _ in range(self.skipped[word]):
+                self.unknown.word_frequency.add(word)
+        print("Dumped skipped back into unknown")
 
     def correct(self):
         """
@@ -133,9 +139,14 @@ class Fixer(object):
         suggest = self.suggest
         
         if len(unknown_words) == 0:
-            quit = True
-            print("YOU ARE DONE!")
-            return quit # FINISHED!
+            if len(self.skipped) == 0:
+                quit = True
+                print("YOU ARE DONE!")
+                return quit # FINISHED!
+            else:
+                print("Almost done! Moving skipped into unknown.")
+                self.dump_skipped()
+                return quit # CYCLE BACK THROUGH AGAIN
         else:
             r = len(unknown_words)
             word = ''
@@ -232,7 +243,9 @@ class Fixer(object):
                     ans = get_yn()
     
                 if ans:
-                    kwfq.add(word)
+                    # need to do this for correct frequency counts
+                    for _ in range(uwfq.dictionary[word]):
+                        kwfq.add(word)
                     uwfq.remove(word)
                     #self.corrections[word] = []
                     print("Added word.")
@@ -249,11 +262,14 @@ class Fixer(object):
                     ans = get_yn()
     
                 if ans:
-                    kwfq.add(correction)
+                    for _ in range(uwfq.dictionary[correction]):
+                        kwfq.add(correction)
                     print("Added %s to knowns."%correction)
                     if word in uwfq.dictionary:
                         print("Removing %s from unknowns."%word)
                         uwfq.remove(word)
+                    if word in self.skipped:
+                        self.skipped.remove(word)
                     if correction in self.skipped:
                         self.skipped.remove(correction)
                     if correction in uwfq.dictionary:
