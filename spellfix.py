@@ -60,7 +60,14 @@ class Fixer(object):
             with open(self.suggest_file, 'r') as f:
                 self.suggest = json.load(f)
         
-        self.skipped = {}
+        self.skipped_file = self.prefix + '-skipped.json'
+        if os.path.exists(self.skipped_file):
+            print("Reading skipped.")
+            with open(self.skipped_file, 'r') as f:
+                self.skipped = json.load(f)
+        else:
+            self.skipped = {}
+
         self.known = SpellChecker(distance=2, language=None, case_sensitive=False)
         if os.path.exists(self.known_file):
             print("Reading known")
@@ -341,7 +348,8 @@ class Fixer(object):
             json.dump(self.known.word_frequency.dictionary, f)
         with open(self.corrections_file, 'w') as f:
             json.dump(self.corrections, f)
-
+        with open(self.skipped_file, 'w') as f:
+            json.dump(self.skipped, f)
         print("SAVED!") 
 
     def show_corrections(self):
