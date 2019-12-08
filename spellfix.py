@@ -150,6 +150,7 @@ class Fixer(object):
             if len(self.skipped) == 0:
                 quit = True
                 print("YOU ARE DONE!")
+                self.save()
                 return quit # FINISHED!
             else:
                 print("Almost done! Moving skipped into unknown.")
