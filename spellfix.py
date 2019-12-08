@@ -158,7 +158,7 @@ class Fixer(object):
             r = len(unknown_words)
             word = ''
             self.word = word
-            random_choice = True
+            random_choice = False
             if random_choice:
                 j = 0 # how many times can we try passing through short words before giving up?
                 while (len(word) <= 4) and (j<10):
@@ -191,7 +191,16 @@ class Fixer(object):
             for w in known_candidates:
                 if w in unknown_candidates:
                     unknown_candidates.remove(w) 
-            if word in unknown_candidates and len(known_candidates) >= 0:
+
+            to_rm = [] # move unknowns to knowns if they belong there (suggestions)
+            for w in unknown_candidates:
+                if w in kwfq.dictionary.keys():
+                    known_candidates.append(w)
+                    to_rm.append(w)
+            for w in to_rm:
+                unknown_candidates.remove(w)
+
+            if word in unknown_candidates and len(known_candidates) > 0:
                 unknown_candidates.remove(word)
             #print(known_candidates, unknown_candidates)
             candidates = []
@@ -273,7 +282,6 @@ class Fixer(object):
                     uwfq.remove(word)
                     #self.corrections[word] = []
                     print("Added word.")
-                    self.clean()
 
             elif choice in choices:
                 choice = int(choice) # numerical choice.
@@ -317,6 +325,7 @@ class Fixer(object):
                     # go through list and remove words
                     self.clean()        
             else:
+                self.word = word
                 quit = select_option(self, choice)
             return quit
 
@@ -384,6 +393,7 @@ def select_option(fix, choice):
     # quit
     if choice in ['0', 'Q', 'q']:
         quit = True
+        fix.save()
         print("Exiting...")
     # skip   
     elif choice in ['P', 'p']:
