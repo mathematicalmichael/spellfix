@@ -218,13 +218,13 @@ class Fixer(object):
                 if len(candidates) == 0:
                     choice = '0'
                 skip = True # skip confirmation
-            elif (len(unknown_candidates) == 0) and (len(known_candidates) == 1) and (probs[1] > 2*probs[0]):
+            elif (len(unknown_candidates) == 0) and (len(known_candidates) == 1) and (probs[1] > 2.5*probs[0]):
                 # one known and no unknowns, high prob of being other word
                 # threshold is "twice as often"
                 choice = '1'
                 print("Making correction to only known option (higher probability than being new.).")
                 skip = True
-            elif (len(unknown_candidates) == 0) and (len(known_candidates) == 1) and (probs[0] > 2*probs[1]):
+            elif (len(unknown_candidates) == 0) and (len(known_candidates) == 1) and (probs[0] > 2.5*probs[1]):
                 # one known and no unknowns, higher prob of being new
                 choice = '0'
                 print("Adding word (higher probability of being new).")
@@ -369,14 +369,14 @@ def get_yn():
             print("Invalid choice. Please try again!\n")
 
 menu = """
-Q. Quit/Exit.
-P: Skip word.
-O: Show skipped words.
-S. Save files to disk.
-E. Edit existing entries.
-K: See known list.
-U: See unknown list.
-L: See corrections list.
+\tQ. Quit/Exit.
+\tP: Skip word.
+\tO: Show skipped words.
+\tS. Save files to disk.
+\tE. Edit existing entries.
+\tK: See known list.
+\tU: See unknown list.
+\tL: See corrections list.
 """
 
 def select_option(fix, choice):
@@ -423,7 +423,7 @@ def mainmenu(fix):
     i = 0
     while not quit:
         counts = fix.get_counts()
-        print("=====================")
+        print("\n=====================")
         print("Done: %d, Remaining: %d"%(counts))
         print(menu)
         quit = fix.correct()
