@@ -134,6 +134,7 @@ class Fixer(object):
         for word in self.skipped:
             for _ in range(self.skipped[word]):
                 self.unknown.word_frequency.add(word)
+        self.skipped = {}
         print("Dumped skipped back into unknown")
 
     def correct(self):
