@@ -53,7 +53,7 @@ class Fixer(object):
             self.corrections = {}
         self.random_choice = random_choice
         self.threshold = 10
-        self.suggest = None
+        self.suggest = {}
         self.suggest_file = self.prefix + '-suggestions.json'
         if os.path.exists(self.suggest_file):
             print("Reading suggestions.")
