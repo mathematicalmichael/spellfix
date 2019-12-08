@@ -35,7 +35,7 @@ def pre_process_file(filename):
 
 
 class Fixer(object):
-    def __init__(self, filename):
+    def __init__(self, filename, random_choice=False):
         """
         
         Parameters
@@ -51,7 +51,7 @@ class Fixer(object):
                 self.corrections = json.load(f)
         else:
             self.corrections = {}
-
+        self.random_choice = random_choice
         self.threshold = 10
         self.suggest = None
         self.suggest_file = self.prefix + '-suggestions.json'
@@ -158,8 +158,7 @@ class Fixer(object):
             r = len(unknown_words)
             word = ''
             self.word = word
-            random_choice = False
-            if random_choice:
+            if self.random_choice:
                 j = 0 # how many times can we try passing through short words before giving up?
                 while (len(word) <= 4) and (j<10):
                     word = unknown_words[random.randint(0,r-1)]
@@ -167,7 +166,8 @@ class Fixer(object):
             else:
                 word = unknown_words[0]
                 self.word = word # store for reference
-
+            if len(word)>10:
+                self.save()
         #self.unknown.word_frequency.remove(word)
         # uwfq.remove(word)
         print("\t===> %s"%word)
@@ -200,7 +200,7 @@ class Fixer(object):
             for w in to_rm:
                 unknown_candidates.remove(w)
 
-            if word in unknown_candidates and len(known_candidates) > 0:
+            if word in unknown_candidates:
                 unknown_candidates.remove(word)
             #print(known_candidates, unknown_candidates)
             candidates = []
@@ -227,13 +227,13 @@ class Fixer(object):
                 if len(candidates) == 0:
                     choice = '0'
                 skip = True # skip confirmation
-            elif (len(unknown_candidates) == 0) and (len(known_candidates) == 1) and (probs[1] > 2.5*probs[0]):
+            elif (len(unknown_candidates) == 0) and (len(known_candidates) == 1) and (probs[1] > 3*probs[0]) and (probs[1]>0.90):
                 # one known and no unknowns, high prob of being other word
                 # threshold is "twice as often"
                 choice = '1'
                 print("Making correction to only known option (higher probability than being new.).")
                 skip = True
-            elif (len(unknown_candidates) == 0) and (len(known_candidates) == 1) and (probs[0] > 2.5*probs[1]):
+            elif (len(unknown_candidates) == 0) and (len(known_candidates) == 1) and (probs[0] > 3*probs[1]) and (probs[0]>0.90):
                 # one known and no unknowns, higher prob of being new
                 choice = '0'
                 print("Adding word (higher probability of being new).")
@@ -304,9 +304,9 @@ class Fixer(object):
                         print("Removing %s from unknowns."%word)
                         uwfq.remove(word)
                     if word in self.skipped:
-                        self.skipped.remove(word)
+                        self.skipped.pop(word)
                     if correction in self.skipped:
-                        self.skipped.remove(correction)
+                        self.skipped.pop(correction)
                     if correction in uwfq.dictionary:
                         print("Removing %s from unknowns."%correction)
                         uwfq.remove(correction)
@@ -381,6 +381,7 @@ menu = """
 \tQ. Quit/Exit.
 \tP: Skip word.
 \tO: Show skipped words.
+\tD: Dump skipped to unknown.
 \tS. Save files to disk.
 \tE. Edit existing entries.
 \tK: See known list.
@@ -400,6 +401,8 @@ def select_option(fix, choice):
         fix.skip()
     elif choice in ['O', 'o']:
         fix.show_skipped()
+    elif choice in ['D', 'd']:
+        fix.dump_skipped()
     # correct   
     elif choice in ['C', 'c', '']:  # default choice
         fix.correct()
@@ -457,11 +460,16 @@ def main():
                         default='wordlist.txt',
                         type=str,
                         help='File name of words to correct.')
+    parser.add_argument('-r', '--random',
+                        default=False,
+                        type=bool,
+                        help='True/False: Display words in random order.')
     args = parser.parse_args()
     filename = args.file
+    random_choice = args.random
     if not os.path.exists(filename):
         raise ValueError("File %s does not exist."%filename)
-    fix = Fixer(filename)
+    fix = Fixer(filename,random_choice=random_choice)
     mainmenu(fix)
 
 if __name__ == '__main__':
