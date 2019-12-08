@@ -158,8 +158,8 @@ class Fixer(object):
             r = len(unknown_words)
             word = ''
             self.word = word
-            random = False
-            if random:
+            random_choice = True
+            if random_choice:
                 j = 0 # how many times can we try passing through short words before giving up?
                 while (len(word) <= 4) and (j<10):
                     word = unknown_words[random.randint(0,r-1)]
