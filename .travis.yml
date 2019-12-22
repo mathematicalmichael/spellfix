@@ -90,7 +90,7 @@ jobs:
       before_install:
         - python3 --version
         - pip3 install -U pip
-        - pip install cython  # errors without this
+        - pip3 install cython  # errors without this (seemingly only on this build)
       install:  # need to use pip3 to ensure we're not accidentally using python 2.7
         - pip3 install -U .[testing]
         - pip3 install -U .[recommend]
