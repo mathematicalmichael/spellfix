@@ -6,7 +6,6 @@ notifications:
 # ======= Linux ========
 os: linux
 python:
-  - 3.5
   - 3.6
   - 3.7
   - 3.7-dev
@@ -43,10 +42,6 @@ jobs:
 #    - name: "Python 2.7 on Bionic"
 #      python: 2.7
 #      dist: bionic
-
-    - name: "Python 3.5 on Bionic"
-      python: 3.5
-      dist: bionic
 
     - name: "Python 3.6  on Bionic"
       python: 3.6
@@ -136,15 +131,15 @@ jobs:
 #         - pip install .
 #      env: PATH=/c/Python27:/c/Python27/Scripts:$PATH
 #
-    - name: "Python 3.5.4 on Windows"
-      os: windows           # Windows 10.0.17134 N/A Build 17134
-      language: shell       # 'language: python' is an error on Travis CI Windows
-      before_install:
-        - choco install python --version 3.5.4
-        - python --version
-        - python -m pip install -U pip
-        - pip install numpy cython
-      env: PATH=/c/Python35:/c/Python35/Scripts:$PATH
+#     - name: "Python 3.5.4 on Windows"
+#       os: windows           # Windows 10.0.17134 N/A Build 17134
+#       language: shell       # 'language: python' is an error on Travis CI Windows
+#       before_install:
+#         - choco install python --version 3.5.4
+#         - python --version
+#         - python -m pip install -U pip
+#         - pip install numpy cython
+#       env: PATH=/c/Python35:/c/Python35/Scripts:$PATH
 
     - name: "Python 3.6.8 on Windows"
       os: windows           # Windows 10.0.17134 N/A Build 17134
@@ -165,7 +160,8 @@ jobs:
         - python -m pip install -U pip
         - pip install numpy cython
       env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
-
+ 
+  allow_failures:
     - name: "Python 3.8 on Windows"
       os: windows           # Windows 10.0.17134 N/A Build 17134
       language: shell       # 'language: python' is an error on Travis CI Windows
